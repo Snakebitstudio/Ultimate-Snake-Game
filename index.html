@@ -114,7 +114,7 @@
       <div class="pill"><span>Map</span><b id="mapLabel">Classic</b></div>
       <div class="pill"><span>Size</span><b id="sizeLabel">Normal</b></div>
       <div class="pill"><span>Apples</span><b id="appleLabel">1</b></div>
-      <div class="pill"><span>Ver</span><b id="ver">v1.5.3</b></div>
+      <div class="pill"><span>Ver</span><b id="ver">v1.5.4</b></div>
       <div class="pill"><span>Shield</span><b id="shieldLabel">0</b></div>
       <div class="pill"><span>Slow</span><b id="slowLabel">0</b></div>
       <div class="pill"><span>Freeze</span><b id="freezeLabel">0</b></div>
@@ -401,7 +401,6 @@
   const slowBtn = document.getElementById('slowBtn');
   const fastBtn = document.getElementById('fastBtn');
 
-  // Developer tools (visible panel)
 
 
   function loadJson(key, fallback) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
@@ -1231,10 +1230,7 @@ function endGame(reason){
   [pShield,pSlow,pFreeze,pDouble,pMagnet,pShrink].forEach(el=>el.addEventListener('change',()=>applySettingsAndRestart(false)));
 
   
-  // Developer tools wiring
-  function refreshDevUI(){
-    } else {
-    }
+  function refreshDevUI(){}
   }
   function runDevCode(raw){
     const code = (raw||'').trim().toUpperCase();
@@ -1242,13 +1238,10 @@ function endGame(reason){
 
 
   
-  // Dev unlock (fixed code). Session-only: locks every refresh.
   function tryUnlockDev(){
     if(!v) return;
-    if(v===DEV_UNLOCK_CODE){
       saveDev(); // saves toggles only
-      refreshDevUI();
-      toast('Dev unlocked');
+      
     } else {
       toast('Wrong code');
     }
@@ -1313,7 +1306,7 @@ function endGame(reason){
       return;
     }
     saveDev();
-    refreshDevUI();
+    
     toast('Dev mode OFF');
   });
 
@@ -1429,7 +1422,7 @@ Pre-flight checks (double-check)
 
   // Init
   rebuildCosmeticSelects(); applyCosmetics();
-  refreshDevUI();
+  
   setSpeed(speedLevel);
   recalcGrid(sizeMode);
 
