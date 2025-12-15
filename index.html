@@ -114,7 +114,7 @@
       <div class="pill"><span>Map</span><b id="mapLabel">Classic</b></div>
       <div class="pill"><span>Size</span><b id="sizeLabel">Normal</b></div>
       <div class="pill"><span>Apples</span><b id="appleLabel">1</b></div>
-      <div class="pill"><span>Ver</span><b id="ver">v1.5.5</b></div>
+      <div class="pill"><span>Ver</span><b id="ver">v1.5.6</b></div>
       <div class="pill"><span>Shield</span><b id="shieldLabel">0</b></div>
       <div class="pill"><span>Slow</span><b id="slowLabel">0</b></div>
       <div class="pill"><span>Freeze</span><b id="freezeLabel">0</b></div>
@@ -1252,107 +1252,10 @@ function endGame(reason){
   [pShield,pSlow,pFreeze,pDouble,pMagnet,pShrink].forEach(el=>el.addEventListener('change',()=>applySettingsAndRestart(false)));
 
   
-  function refreshDevUI(){}
-  }
-  function runDevCode(raw){
-    const code = (raw||'').trim().toUpperCase();
-    if(!code){ toast('Enter a code'); return; }
-
-
   
-  function tryUnlockDev(){
-    if(!v) return;
-      saveDev(); // saves toggles only
-      
-    } else {
-      toast('Wrong code');
-    }
-  }
-    if(e.key==='Enter'){ e.preventDefault(); tryUnlockDev(); }
-  });
-    // Mobile-friendly: auto-attempt when 6 digits entered
-    if(v.length>=6){ tryUnlockDev(); }
-  });
+  // (dev code removed)
 
-    // Supported codes:
-    // SCORE+N / SCORE-N
-    // SPEED=N (1..10)
-    // APPLES=N (1..12)
-    // UNLOCKMAPS (set overall highs to 999)
-    // CLEARHIGHS (set highs to 0)
-    const m1 = code.match(/^SCORE([+-])(\d{1,3})$/);
-    if(m1){
-      const sign=m1[1], n=parseInt(m1[2],10);
-      score = Math.max(0, score + (sign==='+'?n:-n));
-      toast('DEV: score set to '+score);
-      updateUI();
-      return;
-    }
-    const m2 = code.match(/^SPEED=(\d{1,2})$/);
-    if(m2){
-      const n=Math.max(1,Math.min(10,parseInt(m2[1],10)));
-      userSpeedLevel=n; speedLevel=n; setSpeed(n); savePrefs();
-      toast('DEV: speed '+n);
-      return;
-    }
-    const m3 = code.match(/^APPLES=(\d{1,2})$/);
-    if(m3){
-      const n=Math.max(1,Math.min(12,parseInt(m3[1],10)));
-      appleTarget=n; appleCountInput.value=String(n); ensureAppleCount(); savePrefs();
-      toast('DEV: apples '+n);
-      return;
-    }
-    if(code==='UNLOCKMAPS'){
-      try{
-        localStorage.setItem(HS_EAT, '999');
-        localStorage.setItem(HS_DODGE, '999');
-      }catch{}
-      rebuildMapSelect();
-      toast('DEV: maps unlocked');
-      updateUI();
-      return;
-    }
-    if(code==='CLEARHIGHS'){
-      try{
-        localStorage.setItem(HS_EAT, '0');
-        localStorage.setItem(HS_DODGE, '0');
-      }catch{}
-      rebuildMapSelect();
-      toast('DEV: highs cleared');
-      updateUI();
-      return;
-    }
-    toast('Unknown code');
-  }
-
-      return;
-    }
-    saveDev();
-    
-    toast('Dev mode OFF');
-  });
-
-
-  devRunBtn.addEventListener('click',()=>{ runDevCode(devCode.value); });
-  devCode.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); runDevCode(devCode.value); } });
-
-  devHelpBtn.addEventListener('click',()=>{
-    toast('Codes: SCORE+10, SCORE-5, SPEED=4, APPLES=3, UNLOCKMAPS, CLEARHIGHS');
-  });
-
-  devAddAppleBtn.addEventListener('click',()=>{
-    appleTarget=Math.min(12, appleTarget+1);
-    appleCountInput.value=String(appleTarget);
-    ensureAppleCount(); savePrefs(); toast('Apples: '+appleTarget);
-  });
-  devSubAppleBtn.addEventListener('click',()=>{
-    appleTarget=Math.max(1, appleTarget-1);
-    appleCountInput.value=String(appleTarget);
-    ensureAppleCount(); savePrefs(); toast('Apples: '+appleTarget);
-  });
-
-// 
-  // Codes box wiring (testing)
+// Codes box wiring (testing)
   const cheatInput = document.getElementById('cheatInput');
   const cheatRunBtn = document.getElementById('cheatRunBtn');
   const cheatStatus = document.getElementById('cheatStatus');
