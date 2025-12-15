@@ -114,7 +114,7 @@
       <div class="pill"><span>Map</span><b id="mapLabel">Classic</b></div>
       <div class="pill"><span>Size</span><b id="sizeLabel">Normal</b></div>
       <div class="pill"><span>Apples</span><b id="appleLabel">1</b></div>
-      <div class="pill"><span>Ver</span><b id="ver">v1.5.4</b></div>
+      <div class="pill"><span>Ver</span><b id="ver">v1.5.5</b></div>
       <div class="pill"><span>Shield</span><b id="shieldLabel">0</b></div>
       <div class="pill"><span>Slow</span><b id="slowLabel">0</b></div>
       <div class="pill"><span>Freeze</span><b id="freezeLabel">0</b></div>
@@ -619,6 +619,7 @@
   function manhattan(a,b){return Math.abs(a.x-b.x)+Math.abs(a.y-b.y);}
 
   let paused=false, gameOver=false;
+  let started=false;
   let snake=[], dir={x:1,y:0}, nextDir={x:1,y:0};
   let apples=[];
   let score=0, grow=0, ticks=0, survivalTicks=0, appleMoveEvery=3;
@@ -688,7 +689,7 @@
     highEl.textContent=hs;
     overallHighEl.textContent=getOverallHigh();
 
-    pauseBtn.textContent=paused?'Resume':'Pause';
+    pauseBtn.textContent = (!started || paused) ? 'Play' : 'Pause';
 
     const disabled=(powerMode==='off');
     for(const el of [pShield,pSlow,pFreeze,pDouble,pMagnet,pShrink]){
@@ -819,7 +820,7 @@
   }
 
   function reset(){
-    score=0; grow=0; paused=false; gameOver=false; overlay.style.display='none';
+    score=0; grow=0; paused=true; started=false; gameOver=false; overlay.style.display='none';
     ticks=0; survivalTicks=0; appleMoveEvery=3;
     shield=0; slowTicks=0; freezeTicks=0; doubleTicks=0; magnetTicks=0;
     powerUp=null; powerAge=0;
@@ -1135,7 +1136,12 @@ function endGame(reason){
     if(paused && !gameOver){
       ctx.fillStyle='rgba(0,0,0,.35)'; ctx.fillRect(0,0,canvas.width,canvas.height);
       ctx.fillStyle=COL.text; ctx.font='900 22px system-ui'; ctx.textAlign='center';
-      ctx.fillText('Paused',canvas.width/2,canvas.height/2);
+      ctx.fillText(paused && !started ? 'Ready' : 'Paused',canvas.width/2,canvas.height/2);
+      if(!started){
+        ctx.font='800 14px system-ui';
+        ctx.fillStyle=COL.muted;
+        ctx.fillText('Tap Play (or press Space) to start',canvas.width/2,canvas.height/2+24);
+      }
     }
   }
 
@@ -1149,9 +1155,25 @@ function endGame(reason){
     requestAnimationFrame(loop);
   }
 
-  function togglePause(){ if(gameOver) return; paused=!paused; updateUI(); }
+  function togglePause(){
+    if(gameOver) return;
+    if(!started){
+      started=true;
+      paused=false;
+      updateUI();
+      toast('Go!');
+      return;
+    }
+    paused=!paused;
+    updateUI();
+  }
 
   // Inputs
+  canvas.addEventListener('pointerdown',()=>{
+    if(gameOver) return;
+    if(!started){ started=true; paused=false; updateUI(); toast('Go!'); return; }
+    paused=!paused; updateUI();
+  });
   window.addEventListener('keydown',(e)=>{
     const k=e.key.toLowerCase();
     if(k==='p'||k===' '){togglePause();e.preventDefault();return;}
@@ -1435,9 +1457,17 @@ Pre-flight checks (double-check)
   enforceMapCompatibility();
   updateMapUI();
 
-  reset();
-  requestAnimationFrame(loop);
+  try{
+    reset();
+    draw();
+    updateUI();
+    requestAnimationFrame(loop);
+  }catch(err){
+    try{ const box=document.getElementById('errBox'); if(box){ box.style.display='block'; box.textContent='Error: '+(err&&err.message?err.message:String(err)); } }catch{}
+    console.error(err);
+  }
 })();
 </script>
+<div id="errBox" style="display:none;position:fixed;left:12px;right:12px;top:12px;z-index:99;padding:10px 12px;border-radius:14px;background:rgba(120,20,20,.92);border:1px solid rgba(255,255,255,.18);color:#fff;font-weight:900;backdrop-filter:blur(10px);"></div>
 </body>
 </html>
