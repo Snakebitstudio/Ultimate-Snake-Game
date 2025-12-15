@@ -107,7 +107,7 @@
       <div class="pill"><span>Map</span><b id="mapLabel">Classic</b></div>
       <div class="pill"><span>Size</span><b id="sizeLabel">Normal</b></div>
       <div class="pill"><span>Apples</span><b id="appleLabel">1</b></div>
-      <div class="pill"><span>Ver</span><b id="ver">v1.4.6</b></div>
+      <div class="pill"><span>Ver</span><b id="ver">v1.4.7</b></div>
       <div class="pill"><span>Shield</span><b id="shieldLabel">0</b></div>
       <div class="pill"><span>Slow</span><b id="slowLabel">0</b></div>
       <div class="pill"><span>Freeze</span><b id="freezeLabel">0</b></div>
@@ -182,34 +182,41 @@
         </details>
       
 
-        <details id=\"devDetails\" class=\"devLocked\">
-          <summary>Developer tools <span class="sumRight">testing only</span></summary>
-          <div class="mini">This is a visible dev panel for testing. Unlock with the dev code. (Resets on refresh.)</div>
+        <details id="devDetails" class="devLocked">
+  <summary>Developer tools <span class="sumRight">testing only</span></summary>
+  <div class="mini">Visible dev panel for testing. Unlock is required (session-only).</div>
 
-          <div class="row">
-            <div class="grow">
-              <div class="label">Developer mode</div>
-              <select id="devModeSelect" aria-label="Developer mode">
-                <option value="off">Off</option>
-                <option value="on">On</option>
-              </select>
-            </div>
-          </div>
-<div class="btnRow">
-            <button id="devRunBtn" type="button">Run code</button>
-            <button id="devHelpBtn" type="button">Show codes</button>
-          </div>
+  <div class="row">
+    <div class="grow">
+      <div class="label">Developer mode</div>
+      <select id="devModeSelect" aria-label="Developer mode">
+        <option value="off">Off</option>
+        <option value="on">On</option>
+      </select>
+    </div>
+  </div>
 
-          <div class="checkgrid">
-            <label class="check"><input id="devGod" type="checkbox">God mode (no death)</label>
-            <label class="check"><input id="devNoWalls" type="checkbox">Ignore map collisions</label>
-          </div>
+  <div class="row">
+    <div class="grow">
+      <div class="label">Code input</div>
+      <input id="devCode" type="text" placeholder="Type a dev code (ex: SCORE+10)" aria-label="Dev code">
+    </div>
+  </div>
+  <div class="btnRow">
+    <button id="devRunBtn" type="button">Run code</button>
+    <button id="devHelpBtn" type="button">Show codes</button>
+  </div>
 
-          <div class="btnRow">
-            <button id="devAddAppleBtn" type="button">+1 apple</button>
-            <button id="devSubAppleBtn" type="button">-1 apple</button>
-          </div>
-        </details>
+  <div class="checkgrid">
+    <label class="check"><input id="devGod" type="checkbox">God mode (no death)</label>
+    <label class="check"><input id="devNoWalls" type="checkbox">Ignore collisions</label>
+  </div>
+
+  <div class="btnRow">
+    <button id="devAddAppleBtn" type="button">+1 apple</button>
+    <button id="devSubAppleBtn" type="button">-1 apple</button>
+  </div>
+</details>
 </section>
 
       <section class="canvasWrap" aria-label="Game board">
