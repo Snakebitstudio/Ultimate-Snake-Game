@@ -55,7 +55,7 @@
   
     /* Dev panel compact/locked mode */
     details.devLocked{padding:1px 3px;}
-    details.devLocked summary{font-size:10px; padding:4px 6px;}
+    details.devLocked summary{font-size:10px; padding:3px 6px;}
     details.devLocked > *:not(summary){display:none !important;}
     details.devLocked summary .sumRight{display:none;}
     details.devLocked summary{margin:0;}
@@ -107,7 +107,7 @@
       <div class="pill"><span>Map</span><b id="mapLabel">Classic</b></div>
       <div class="pill"><span>Size</span><b id="sizeLabel">Normal</b></div>
       <div class="pill"><span>Apples</span><b id="appleLabel">1</b></div>
-      <div class="pill"><span>Ver</span><b id="ver">v1.4.5</b></div>
+      <div class="pill"><span>Ver</span><b id="ver">v1.4.6</b></div>
       <div class="pill"><span>Shield</span><b id="shieldLabel">0</b></div>
       <div class="pill"><span>Slow</span><b id="slowLabel">0</b></div>
       <div class="pill"><span>Freeze</span><b id="freezeLabel">0</b></div>
@@ -320,7 +320,8 @@
 
 <div class="devUnlockBox" aria-label="Developer access">
   <span class="tag">Dev</span>
-  <input id="devUnlockInput" type="password" inputmode="numeric" placeholder="Enter code" aria-label="Dev unlock code">
+  <input id="devUnlockInput" type="password" inputmode="numeric" maxlength="6" placeholder="Enter code" aria-label="Dev unlock code">
+  <button id="devUnlockBtn" type="button" style="height:30px;border-radius:12px;padding:0 10px;border:1px solid rgba(155,176,204,.22);background:rgba(155,176,204,.10);color:var(--text);font-weight:900;">Unlock</button>
 </div>
 
 <script>
@@ -434,6 +435,7 @@
   const devSubAppleBtn = document.getElementById('devSubAppleBtn');
   const devDetails = document.getElementById('devDetails');
   const devUnlockInput = document.getElementById('devUnlockInput');
+  const devUnlockBtn = document.getElementById('devUnlockBtn');
 
 
   function loadJson(key, fallback) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
@@ -1291,23 +1293,33 @@ function endGame(reason){
     if(!code){ toast('Enter a code'); return; }
 
 
-  // Dev unlock (fixed code). Resets every refresh.
+  
+  // Dev unlock (fixed code). Session-only: locks every refresh.
   const DEV_UNLOCK_CODE = '091012';
-  devUnlockInput.addEventListener('keydown',(e)=>{
-    if(e.key==='Enter'){
-      e.preventDefault();
-      const v=(devUnlockInput.value||'').trim();
+  function tryUnlockDev(){
+    const v=(devUnlockInput.value||'').trim();
+    if(!v) return;
+    if(v===DEV_UNLOCK_CODE){
+      sessionDevUnlocked=true;
       devUnlockInput.value='';
-      if(v===DEV_UNLOCK_CODE){
-        sessionDevUnlocked=true;
-        saveDev();
-        refreshDevUI();
-        toast('Dev unlocked');
-      } else {
-        toast('Wrong code');
-      }
+      saveDev(); // saves toggles only
+      refreshDevUI();
+      toast('Dev unlocked');
+    } else {
+      toast('Wrong code');
+      devUnlockInput.select?.();
     }
+  }
+  devUnlockBtn.addEventListener('click',()=>{ tryUnlockDev(); });
+  devUnlockInput.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'){ e.preventDefault(); tryUnlockDev(); }
   });
+  devUnlockInput.addEventListener('input',()=>{
+    // Mobile-friendly: auto-attempt when 6 digits entered
+    const v=(devUnlockInput.value||'').trim();
+    if(v.length>=6){ tryUnlockDev(); }
+  });
+
     // Supported codes:
     // SCORE+N / SCORE-N
     // SPEED=N (1..10)
@@ -1359,15 +1371,6 @@ function endGame(reason){
     toast('Unknown code');
   }
 
-    if(!pin){ toast('Enter a PIN to set'); return; }
-    dev.pinHash = hashPin(pin);
-        saveDev();
-    toast('Dev PIN saved');
-  });
-    refreshDevUI();
-    toast('Dev PIN cleared');
-  });
-
   devModeSelect.addEventListener('change',()=>{
     if(devModeSelect.value==='on'){
       toast('Enter the dev code in the corner to unlock');
@@ -1417,7 +1420,8 @@ function endGame(reason){
     'devAddAppleBtn',
     'devSubAppleBtn',
     'devDetails',
-    'devUnlockInput'];
+    'devUnlockInput',
+    'devUnlockBtn'];
   for(const id of required){ if(!document.getElementById(id)) throw new Error('Missing element: '+id); }
 
   // Init
