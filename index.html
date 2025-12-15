@@ -107,7 +107,7 @@
       <div class="pill"><span>Map</span><b id="mapLabel">Classic</b></div>
       <div class="pill"><span>Size</span><b id="sizeLabel">Normal</b></div>
       <div class="pill"><span>Apples</span><b id="appleLabel">1</b></div>
-      <div class="pill"><span>Ver</span><b id="ver">v1.4.7</b></div>
+      <div class="pill"><span>Ver</span><b id="ver">v1.4.8</b></div>
       <div class="pill"><span>Shield</span><b id="shieldLabel">0</b></div>
       <div class="pill"><span>Slow</span><b id="slowLabel">0</b></div>
       <div class="pill"><span>Freeze</span><b id="freezeLabel">0</b></div>
@@ -1312,6 +1312,7 @@ function endGame(reason){
       saveDev(); // saves toggles only
       refreshDevUI();
       toast('Dev unlocked');
+      try{ devDetails.scrollIntoView({behavior:'smooth',block:'nearest'}); }catch{}
     } else {
       toast('Wrong code');
       devUnlockInput.select?.();
@@ -1380,12 +1381,17 @@ function endGame(reason){
 
   devModeSelect.addEventListener('change',()=>{
     if(devModeSelect.value==='on'){
-      toast('Enter the dev code in the corner to unlock');
-      devModeSelect.value='off';
+      if(!sessionDevUnlocked){
+        toast('Enter the dev code in the corner to unlock');
+        devModeSelect.value='off';
+        return;
+      }
+      // already unlocked
+      toast('Dev mode ON');
+      refreshDevUI();
       return;
     }
     sessionDevUnlocked=false;
-    saveDev();
     refreshDevUI();
     toast('Dev mode OFF');
   });
