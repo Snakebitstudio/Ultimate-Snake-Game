@@ -5,180 +5,53 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Snake – All Features</title>
   <style>
-    :root{
-      --bg:#0b0f14;
-      --panel:#121a24;
-      --panel2:#0f1620;
-      --text:#e7f0ff;
-      --muted:#9bb0cc;
-      --stroke: rgba(155,176,204,.18);
-      --stroke2: rgba(155,176,204,.22);
-    }
-    html,body{ height:100%; margin:0; background:var(--bg); color:var(--text); font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial; }
-    .wrap{ display:grid; grid-template-rows:auto 1fr auto; height:100%; }
-
-    header{
-      display:flex; gap:12px; align-items:flex-start; justify-content:space-between; flex-wrap:wrap;
-      padding: 10px 12px;
-      background: linear-gradient(180deg, rgba(18,26,36,.95), rgba(18,26,36,.65));
-      position: sticky; top: 0; z-index: 10; backdrop-filter: blur(8px);
-      border-bottom: 1px solid rgba(155,176,204,.15);
-    }
-    .stats{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-    .pill{ background: rgba(155,176,204,.10); border: 1px solid var(--stroke); padding: 6px 10px; border-radius: 999px; font-weight: 900; }
-    .pill span{ color: var(--muted); margin-right:6px; }
-
-    main{ padding: 10px; }
-    .board{
-      display:grid;
-      grid-template-columns: minmax(260px, 360px) 1fr minmax(260px, 360px);
-      gap: 12px;
-      align-items:start;
-      max-width: 1220px;
-      margin: 0 auto;
-    }
-    @media (max-width: 980px){
-      .board{ grid-template-columns: 1fr; }
-    }
-
-    .panel{
-      background: rgba(18,26,36,.75);
-      border: 1px solid var(--stroke);
-      border-radius: 18px;
-      padding: 10px;
-      backdrop-filter: blur(8px);
-    }
-    .panel h3{
-      margin: 0 0 8px;
-      font-size: 14px;
-      letter-spacing: .2px;
-      color: var(--muted);
-    }
-
-    details{
-      background: rgba(15,22,32,.55);
-      border: 1px solid rgba(155,176,204,.15);
-      border-radius: 14px;
-      padding: 8px 10px;
-      margin: 8px 0;
-    }
-    details[open]{ background: rgba(15,22,32,.75); border-color: rgba(155,176,204,.22); }
-    summary{
-      cursor: pointer;
-      user-select:none;
-      font-weight: 950;
-      color: var(--text);
-      list-style: none;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-    }
-    summary::-webkit-details-marker{ display:none; }
-    .sumRight{ color: var(--muted); font-weight: 900; font-size: 12px; }
-    .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
-    .row{ display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top: 10px; }
-    .row .grow{ flex:1; min-width: 140px; }
-    .label{ font-weight: 900; color: var(--muted); font-size: 12px; }
-    select, input, button{
-      font-weight: 900;
-      font-family: inherit;
-      color: var(--text);
-    }
-    select, input[type="number"]{
-      height: 34px;
-      border-radius: 12px;
-      border: 1px solid var(--stroke2);
-      background: rgba(155,176,204,.10);
-      padding: 0 10px;
-      outline: none;
-      width: 100%;
-    }
-    input[type="checkbox"]{ width:18px; height:18px; }
-    input[type="color"]{ width: 52px; height: 34px; padding:0; border:0; background: transparent; }
-    button{
-      background: rgba(155,176,204,.12);
-      border: 1px solid var(--stroke2);
-      padding: 10px 12px;
-      border-radius: 12px;
-      cursor:pointer;
-    }
-    button:active{ transform: translateY(1px); }
-
-    .btnRow{ display:flex; gap:10px; flex-wrap:wrap; margin-top: 10px; }
-    .btnRow button{ flex: 1; min-width: 120px; }
-
-    .canvasWrap{ display:grid; place-items:center; }
-    canvas{
-      width: min(560px, 92vw);
-      height: auto;
-      aspect-ratio: 1 / 1;
-      background:#070a0e;
-      border-radius: 18px;
-      border: 2px solid rgba(155,176,204,.18);
-      touch-action: none;
-    }
-    .hint{ color: var(--muted); font-size: 13px; padding: 8px 14px; text-align:center; }
-
-    footer{ padding: 10px 12px 16px; }
-    .controls{
-      display:grid; gap:10px;
-      grid-template-columns: 1fr 1fr 1fr;
-      max-width: 560px; width: min(560px, 96vw);
-      margin: 0 auto;
-    }
-    .dpad{
-      display:grid; place-items:center;
-      grid-template-columns: 1fr 1fr 1fr;
-      grid-template-rows: 1fr 1fr 1fr;
-      gap: 10px;
-      grid-column: 1 / -1;
-    }
-    .dpad button{ height: 56px; font-size: 18px; border-radius: 14px; }
-    .empty{ visibility:hidden; }
-    .row2{ display:flex; gap:10px; justify-content:center; grid-column: 1 / -1; }
-    .row2 button{ flex: 1; height: 44px; }
-
-    .overlay{
-      position: fixed; inset: 0; display:none; place-items:center;
-      background: rgba(0,0,0,.55); backdrop-filter: blur(6px); z-index: 50;
-      padding: 18px;
-    }
-    .card{
-      width: min(720px, 94vw);
-      background: rgba(18,26,36,.95);
-      border: 1px solid var(--stroke2);
-      border-radius: 18px; padding: 16px;
-      box-shadow: 0 12px 44px rgba(0,0,0,.55);
-      word-break: break-word;
-    }
-    .card h2{ margin: 0 0 8px; }
-    .card p{ margin: 8px 0; color: var(--muted); }
-    kbd{
-      background: rgba(155,176,204,.12);
-      border: 1px solid var(--stroke2);
-      padding: 2px 6px; border-radius: 8px;
-      font-weight: 900; color: var(--text);
-    }
-    .mini{ font-size: 12px; color: var(--muted); margin-top: 8px; }
-
-    .checkgrid{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 8px 10px;
-      margin-top: 10px;
-    }
-    .check{
-      display:flex;
-      align-items:center;
-      gap:8px;
-      padding: 8px 10px;
-      border-radius: 12px;
-      border: 1px solid rgba(155,176,204,.14);
-      background: rgba(155,176,204,.06);
-    }
-
-    .danger{ border-color: rgba(255,107,107,.35); }
+    :root{--bg:#0b0f14;--text:#e7f0ff;--muted:#9bb0cc;--stroke:rgba(155,176,204,.18);--stroke2:rgba(155,176,204,.22);}
+    html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+    .wrap{display:grid;grid-template-rows:auto 1fr auto;height:100%;}
+    header{display:flex;gap:12px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;padding:10px 12px;background:linear-gradient(180deg,rgba(18,26,36,.95),rgba(18,26,36,.65));position:sticky;top:0;z-index:10;backdrop-filter:blur(8px);border-bottom:1px solid rgba(155,176,204,.15);}
+    .stats{display:flex;gap:10px;align-items:center;flex-wrap:wrap;}
+    .pill{background:rgba(155,176,204,.10);border:1px solid var(--stroke);padding:6px 10px;border-radius:999px;font-weight:900;}
+    .pill span{color:var(--muted);margin-right:6px;}
+    main{padding:10px;}
+    .board{display:grid;grid-template-columns:minmax(260px,360px) 1fr minmax(260px,360px);gap:12px;align-items:start;max-width:1220px;margin:0 auto;}
+    @media (max-width:980px){.board{grid-template-columns:1fr;}}
+    .panel{background:rgba(18,26,36,.75);border:1px solid var(--stroke);border-radius:18px;padding:10px;backdrop-filter:blur(8px);}
+    .panel h3{margin:0 0 8px;font-size:14px;letter-spacing:.2px;color:var(--muted);}
+    details{background:rgba(15,22,32,.55);border:1px solid rgba(155,176,204,.15);border-radius:14px;padding:8px 10px;margin:8px 0;}
+    details[open]{background:rgba(15,22,32,.75);border-color:rgba(155,176,204,.22);}
+    summary{cursor:pointer;user-select:none;font-weight:950;color:var(--text);list-style:none;display:flex;align-items:center;justify-content:space-between;gap:10px;}
+    summary::-webkit-details-marker{display:none;}
+    .sumRight{color:var(--muted);font-weight:900;font-size:12px;}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px;}
+    .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;}
+    .row .grow{flex:1;min-width:140px;}
+    .label{font-weight:900;color:var(--muted);font-size:12px;}
+    select,input,button{font-weight:900;font-family:inherit;color:var(--text);}
+    select,input[type="number"]{height:34px;border-radius:12px;border:1px solid var(--stroke2);background:rgba(155,176,204,.10);padding:0 10px;outline:none;width:100%;}
+    input[type="checkbox"]{width:18px;height:18px;}
+    input[type="color"]{width:52px;height:34px;padding:0;border:0;background:transparent;}
+    button{background:rgba(155,176,204,.12);border:1px solid var(--stroke2);padding:10px 12px;border-radius:12px;cursor:pointer;}
+    button:active{transform:translateY(1px);}
+    .btnRow{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+    .btnRow button{flex:1;min-width:120px;}
+    .canvasWrap{display:grid;place-items:center;}
+    canvas{width:min(560px,92vw);height:auto;aspect-ratio:1/1;background:#070a0e;border-radius:18px;border:2px solid rgba(155,176,204,.18);touch-action:none;}
+    .hint{color:var(--muted);font-size:13px;padding:8px 14px;text-align:center;}
+    footer{padding:10px 12px 16px;}
+    .controls{display:grid;gap:10px;grid-template-columns:1fr 1fr 1fr;max-width:560px;width:min(560px,96vw);margin:0 auto;}
+    .dpad{display:grid;place-items:center;grid-template-columns:1fr 1fr 1fr;grid-template-rows:1fr 1fr 1fr;gap:10px;grid-column:1/-1;}
+    .dpad button{height:56px;font-size:18px;border-radius:14px;}
+    .empty{visibility:hidden;}
+    .row2{display:flex;gap:10px;justify-content:center;grid-column:1/-1;}
+    .row2 button{flex:1;height:44px;}
+    .overlay{position:fixed;inset:0;display:none;place-items:center;background:rgba(0,0,0,.55);backdrop-filter:blur(6px);z-index:50;padding:18px;}
+    .card{width:min(720px,94vw);background:rgba(18,26,36,.95);border:1px solid var(--stroke2);border-radius:18px;padding:16px;box-shadow:0 12px 44px rgba(0,0,0,.55);word-break:break-word;}
+    .card h2{margin:0 0 8px;}
+    .card p{margin:8px 0;color:var(--muted);}
+    kbd{background:rgba(155,176,204,.12);border:1px solid var(--stroke2);padding:2px 6px;border-radius:8px;font-weight:900;color:var(--text);}
+    .mini{font-size:12px;color:var(--muted);margin-top:8px;}
+    .checkgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;margin-top:10px;}
+    .check{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid rgba(155,176,204,.14);background:rgba(155,176,204,.06);}
   </style>
 </head>
 <body>
@@ -187,10 +60,12 @@
     <div class="stats">
       <div class="pill"><span>Score</span><b id="score">0</b></div>
       <div class="pill"><span>High</span><b id="high">0</b></div>
+      <div class="pill"><span>Overall</span><b id="overallHigh">0</b></div>
       <div class="pill"><span>Speed</span><b id="spd">1</b></div>
       <div class="pill"><span>Mode</span><b id="modeLabel">Eat</b></div>
+      <div class="pill"><span>Map</span><b id="mapLabel">Classic</b></div>
       <div class="pill"><span>Apples</span><b id="appleLabel">1</b></div>
-      <div class="pill"><span>Ver</span><b id="ver">v1.1.0</b></div>
+      <div class="pill"><span>Ver</span><b id="ver">v1.3.1</b></div>
       <div class="pill"><span>Shield</span><b id="shieldLabel">0</b></div>
       <div class="pill"><span>Slow</span><b id="slowLabel">0</b></div>
       <div class="pill"><span>Freeze</span><b id="freezeLabel">0</b></div>
@@ -201,15 +76,11 @@
 
   <main>
     <div class="board">
-      <!-- Left panel -->
       <section class="panel" aria-label="Game settings">
         <h3>Game</h3>
 
         <details open>
-          <summary>
-            Play
-            <span class="sumRight">pause / restart</span>
-          </summary>
+          <summary>Play <span class="sumRight">pause / restart</span></summary>
           <div class="btnRow">
             <button id="pauseBtn" type="button">Pause</button>
             <button id="restartBtn" type="button">Restart</button>
@@ -222,10 +93,19 @@
         </details>
 
         <details open>
-          <summary>
-            Mode
-            <span class="sumRight">eat / dodge</span>
-          </summary>
+          <summary>Map <span class="sumRight">locked maps</span></summary>
+          <div class="row">
+            <div class="grow">
+              <div class="label">Choose a map</div>
+              <select id="mapSelect" aria-label="Map select"></select>
+            </div>
+          </div>
+          <div class="mini" id="mapNote">Classic: normal walls.</div>
+          <div class="mini" id="mapUnlockNote">Unlock more maps by getting an overall high score above 60.</div>
+        </details>
+
+        <details open>
+          <summary>Mode <span class="sumRight">eat / dodge</span></summary>
           <div class="row">
             <div class="grow">
               <div class="label">Mode</div>
@@ -235,24 +115,14 @@
               </select>
             </div>
           </div>
-
           <div class="checkgrid">
-            <label class="check" title="Dodge mode: adds +1 apple every 8 points (up to 12).">
-              <input id="wavesToggle" type="checkbox">
-              Waves
-            </label>
-            <label class="check" title="Dodge mode: apples speed up as you score.">
-              <input id="rampToggle" type="checkbox">
-              Speed ramp
-            </label>
+            <label class="check" title="Dodge mode: adds +1 apple every 8 points (up to 12)."><input id="wavesToggle" type="checkbox">Waves</label>
+            <label class="check" title="Dodge mode: apples speed up as you score."><input id="rampToggle" type="checkbox">Speed ramp</label>
           </div>
         </details>
 
         <details open>
-          <summary>
-            Apples
-            <span class="sumRight">spawn count</span>
-          </summary>
+          <summary>Apples <span class="sumRight">spawn count</span></summary>
           <div class="row">
             <div class="grow">
               <div class="label">Apples at once (both modes)</div>
@@ -262,7 +132,6 @@
         </details>
       </section>
 
-      <!-- Canvas -->
       <section class="canvasWrap" aria-label="Game board">
         <canvas id="game" width="560" height="560"></canvas>
         <div class="hint">
@@ -271,15 +140,11 @@
         </div>
       </section>
 
-      <!-- Right panel -->
       <section class="panel" aria-label="Cosmetics and power-ups">
         <h3>Customize</h3>
 
         <details open>
-          <summary>
-            Power-ups
-            <span class="sumRight">toggles</span>
-          </summary>
+          <summary>Power-ups <span class="sumRight">toggles</span></summary>
           <div class="row">
             <div class="grow">
               <div class="label">Spawn mode</div>
@@ -289,7 +154,6 @@
               </select>
             </div>
           </div>
-
           <div class="checkgrid" aria-label="Power toggles">
             <label class="check"><input id="pShield" type="checkbox">Shield</label>
             <label class="check"><input id="pSlow" type="checkbox">Slow</label>
@@ -298,55 +162,31 @@
             <label class="check"><input id="pMagnet" type="checkbox">Magnet</label>
             <label class="check"><input id="pShrink" type="checkbox">Shrink</label>
           </div>
-
           <div class="mini">Power-ups are random spawns. Turn them off completely or pick which can appear.</div>
         </details>
 
         <details open>
-          <summary>
-            Snake colors
-            <span class="sumRight">body / head</span>
-          </summary>
+          <summary>Snake colors <span class="sumRight">body / head</span></summary>
           <div class="grid2">
-            <div>
-              <div class="label">Body</div>
-              <input id="snakeColor" type="color" value="#b7d7ff" aria-label="Snake color">
-            </div>
-            <div>
-              <div class="label">Head</div>
-              <input id="headColor" type="color" value="#e7f0ff" aria-label="Head color">
-            </div>
+            <div><div class="label">Body</div><input id="snakeColor" type="color" value="#b7d7ff" aria-label="Snake color"></div>
+            <div><div class="label">Head</div><input id="headColor" type="color" value="#e7f0ff" aria-label="Head color"></div>
           </div>
-          <div class="btnRow">
-            <button id="resetColorsBtn" type="button">Reset colors</button>
-          </div>
+          <div class="btnRow"><button id="resetColorsBtn" type="button">Reset colors</button></div>
         </details>
 
         <details open>
-          <summary>
-            Unlock cosmetics
-            <span class="sumRight">bg / border</span>
-          </summary>
-
+          <summary>Unlock cosmetics <span class="sumRight">bg / border</span></summary>
           <div class="grid2">
             <div>
-              <label class="check">
-                <input id="bgEnable" type="checkbox">Enable BG
-              </label>
+              <label class="check"><input id="bgEnable" type="checkbox">Enable BG</label>
               <div class="label">Background</div>
-              <select id="bgSelect" aria-label="Background select">
-                <option value="default">Default</option>
-              </select>
+              <select id="bgSelect" aria-label="Background select"><option value="default">Default</option></select>
               <div class="mini">Unlocks: 10 red, 20 blue, 30 green, 35 white, 40 yellow</div>
             </div>
             <div>
-              <label class="check">
-                <input id="borderEnable" type="checkbox">Enable border
-              </label>
+              <label class="check"><input id="borderEnable" type="checkbox">Enable border</label>
               <div class="label">Border</div>
-              <select id="borderSelect" aria-label="Border select">
-                <option value="default">Default</option>
-              </select>
+              <select id="borderSelect" aria-label="Border select"><option value="default">Default</option></select>
               <div class="mini">Unlocks: 15 orange, 25 neon green</div>
             </div>
           </div>
@@ -420,16 +260,16 @@
     ctx.closePath();
   }
 
-  // Geometry
   const GRID = 21;
   const cell = Math.floor(Math.min(canvas.width, canvas.height) / GRID);
   const pad = Math.floor((canvas.width - cell * GRID) / 2);
 
-  // UI refs
   const scoreEl = document.getElementById('score');
   const highEl  = document.getElementById('high');
+  const overallHighEl = document.getElementById('overallHigh');
   const spdEl   = document.getElementById('spd');
   const modeLabel = document.getElementById('modeLabel');
+  const mapLabel = document.getElementById('mapLabel');
   const appleLabel = document.getElementById('appleLabel');
   const shieldLabel = document.getElementById('shieldLabel');
   const slowLabel = document.getElementById('slowLabel');
@@ -437,6 +277,9 @@
   const doubleLabel = document.getElementById('doubleLabel');
   const magnetLabel = document.getElementById('magnetLabel');
 
+  const mapSelect = document.getElementById('mapSelect');
+  const mapNote = document.getElementById('mapNote');
+  const mapUnlockNote = document.getElementById('mapUnlockNote');
   const modeSelect = document.getElementById('modeSelect');
   const appleCountInput = document.getElementById('appleCount');
   const wavesToggle = document.getElementById('wavesToggle');
@@ -476,743 +319,811 @@
   const slowBtn = document.getElementById('slowBtn');
   const fastBtn = document.getElementById('fastBtn');
 
-  // Storage helpers
-  function loadJson(key, fallback) {
-    try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; }
-    catch { return fallback; }
-  }
+  function loadJson(key, fallback) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
   function saveJson(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
-  function loadColor(key, fallback) {
-    try { const v = localStorage.getItem(key); return (v && /^#[0-9a-fA-F]{6}$/.test(v)) ? v : fallback; }
-    catch { return fallback; }
-  }
+  function loadColor(key, fallback) { try { const v = localStorage.getItem(key); return (v && /^#[0-9a-fA-F]{6}$/.test(v)) ? v : fallback; } catch { return fallback; } }
+  function clampInt(n, lo, hi, fallback){ n = Number(n); if(!Number.isFinite(n)) return fallback; return Math.max(lo, Math.min(hi, Math.floor(n))); }
 
-  // Colors
   const COL = {
-    grid: 'rgba(155,176,204,.08)',
-    food: '#7cf7c5',
-    foodGlow: 'rgba(124,247,197,.35)',
-    hazard: '#ff6b6b',
-    hazardGlow: 'rgba(255,107,107,.35)',
-    power: '#c28bff',
-    powerGlow: 'rgba(194,139,255,.35)',
-    text: '#e7f0ff',
+    grid:'rgba(155,176,204,.08)',
+    food:'#7cf7c5', foodGlow:'rgba(124,247,197,.35)',
+    hazard:'#ff6b6b', hazardGlow:'rgba(255,107,107,.35)',
+    power:'#c28bff', powerGlow:'rgba(194,139,255,.35)',
+    text:'#e7f0ff',
+    crystal1:'#76e0ff', crystal2:'#b58bff', crystalGlow:'rgba(118,224,255,.30)',
+    wall:'#6da8ff', wallGlow:'rgba(109,168,255,.22)',
+    portalA:'#ff4fd8', portalB:'#ffd84f', portalGlow:'rgba(255,79,216,.22)',
   };
   const DEFAULT_BG = '#070a0e';
 
-  // Cosmetic unlocks
-  const BG_UNLOCKS = [
-    { score: 10, id: 'red',    name: 'Red (10)',    color: '#ff2d2d' },
-    { score: 20, id: 'blue',   name: 'Blue (20)',   color: '#2d6bff' },
-    { score: 30, id: 'green',  name: 'Green (30)',  color: '#2dff6b' },
-    { score: 35, id: 'white',  name: 'White (35)',  color: '#ffffff' },
-    { score: 40, id: 'yellow', name: 'Yellow (40)', color: '#ffd400' },
+  // ---- Locked maps (unlock scores >60, spaced by 10+) ----
+  const MAPS = {
+    classic:   { id:'classic',   name:'Classic', allowed:'both', note:'Classic: normal walls.', unlockAt: 0, kind:'none' },
+    crystal:   { id:'crystal',   name:'Crystal Cove', allowed:'eat', note:'Crystal Cove (Eat): crystals are deadly obstacles.', unlockAt: 0, kind:'crystal' },
+    bouncing:  { id:'bouncing',  name:'Bouncing craziness', allowed:'dodge', note:'Bouncing (Dodge): walls bounce you back + 1s speed burst.', unlockAt: 0, kind:'bouncing' },
+
+    // New locked creative maps
+    neonmaze:  { id:'neonmaze',  name:'Neon Maze', allowed:'both', note:'Neon Maze: tight corridors. Walls are deadly.', unlockAt: 70, kind:'walls_maze' },
+    portalrush:{ id:'portalrush',name:'Portal Rush', allowed:'both', note:'Portal Rush: step on a portal to teleport (apples too).', unlockAt: 80, kind:'portals' },
+    spiral:    { id:'spiral',    name:'Spiral Lab', allowed:'both', note:'Spiral Lab: a spiral wall you must navigate around.', unlockAt: 90, kind:'walls_spiral' },
+  };
+
+  const MAP_ORDER = ['classic','crystal','bouncing','neonmaze','portalrush','spiral'];
+
+  function mapDisplayName(id){ return (MAPS[id]&&MAPS[id].name)||'Classic'; }
+  function mapAllowed(id){ return (MAPS[id]&&MAPS[id].allowed)||'both'; }
+  function mapUnlockAt(id){ return (MAPS[id]&&MAPS[id].unlockAt)||0; }
+
+  // Cosmetic unlocks (unchanged)
+  const BG_UNLOCKS=[
+    {score:10,id:'red',name:'Red (10)',color:'#ff2d2d'},
+    {score:20,id:'blue',name:'Blue (20)',color:'#2d6bff'},
+    {score:30,id:'green',name:'Green (30)',color:'#2dff6b'},
+    {score:35,id:'white',name:'White (35)',color:'#ffffff'},
+    {score:40,id:'yellow',name:'Yellow (40)',color:'#ffd400'},
   ];
-  const BORDER_UNLOCKS = [
-    { score: 15, id: 'orange',    name: 'Orange (15)',     color: '#ff8a00' },
-    { score: 25, id: 'neongreen', name: 'Neon green (25)', color: '#39ff14' },
+  const BORDER_UNLOCKS=[
+    {score:15,id:'orange',name:'Orange (15)',color:'#ff8a00'},
+    {score:25,id:'neongreen',name:'Neon green (25)',color:'#39ff14'},
   ];
 
-  const UNLOCK_KEY = 'snake_unlocks_all_v1';
-  const COS_PREF_KEY = 'snake_cosmetic_prefs_all_v1';
-  let unlocks = loadJson(UNLOCK_KEY, { bg: [], border: [] });
-  if (!Array.isArray(unlocks.bg)) unlocks.bg = [];
-  if (!Array.isArray(unlocks.border)) unlocks.border = [];
-  let cosPrefs = loadJson(COS_PREF_KEY, { bgOn:false, bgId:'default', borderOn:false, borderId:'default' });
-
-  function isUnlocked(list, id) { return list.includes(id); }
-  function optionEl(value, label) { const o = document.createElement('option'); o.value=value; o.textContent=label; return o; }
-
-  function rebuildCosmeticSelects() {
-    bgSelect.innerHTML = '';
-    bgSelect.appendChild(optionEl('default', 'Default'));
-    for (const u of BG_UNLOCKS) if (isUnlocked(unlocks.bg, u.id)) bgSelect.appendChild(optionEl(u.id, u.name));
-
-    borderSelect.innerHTML = '';
-    borderSelect.appendChild(optionEl('default', 'Default'));
-    for (const u of BORDER_UNLOCKS) if (isUnlocked(unlocks.border, u.id)) borderSelect.appendChild(optionEl(u.id, u.name));
-
-    bgEnable.checked = !!cosPrefs.bgOn;
-    borderEnable.checked = !!cosPrefs.borderOn;
-
-    const bgOk = (cosPrefs.bgId === 'default') || isUnlocked(unlocks.bg, cosPrefs.bgId);
-    const brOk = (cosPrefs.borderId === 'default') || isUnlocked(unlocks.border, cosPrefs.borderId);
-    bgSelect.value = bgOk ? cosPrefs.bgId : 'default';
-    borderSelect.value = brOk ? cosPrefs.borderId : 'default';
-
-    cosPrefs.bgId = bgSelect.value;
-    cosPrefs.borderId = borderSelect.value;
-    saveJson(COS_PREF_KEY, cosPrefs);
+  const UNLOCK_KEY='snake_unlocks_all_v1';
+  const COS_PREF_KEY='snake_cosmetic_prefs_all_v1';
+  let unlocks=loadJson(UNLOCK_KEY,{bg:[],border:[]});
+  if(!Array.isArray(unlocks.bg))unlocks.bg=[];
+  if(!Array.isArray(unlocks.border))unlocks.border=[];
+  let cosPrefs=loadJson(COS_PREF_KEY,{bgOn:false,bgId:'default',borderOn:false,borderId:'default'});
+  function isUnlocked(list,id){return list.includes(id);}
+  function optionEl(v,l){const o=document.createElement('option');o.value=v;o.textContent=l;return o;}
+  function rebuildCosmeticSelects(){
+    bgSelect.innerHTML=''; bgSelect.appendChild(optionEl('default','Default'));
+    for(const u of BG_UNLOCKS) if(isUnlocked(unlocks.bg,u.id)) bgSelect.appendChild(optionEl(u.id,u.name));
+    borderSelect.innerHTML=''; borderSelect.appendChild(optionEl('default','Default'));
+    for(const u of BORDER_UNLOCKS) if(isUnlocked(unlocks.border,u.id)) borderSelect.appendChild(optionEl(u.id,u.name));
+    bgEnable.checked=!!cosPrefs.bgOn; borderEnable.checked=!!cosPrefs.borderOn;
+    const bgOk=(cosPrefs.bgId==='default')||isUnlocked(unlocks.bg,cosPrefs.bgId);
+    const brOk=(cosPrefs.borderId==='default')||isUnlocked(unlocks.border,cosPrefs.borderId);
+    bgSelect.value=bgOk?cosPrefs.bgId:'default';
+    borderSelect.value=brOk?cosPrefs.borderId:'default';
+    cosPrefs.bgId=bgSelect.value; cosPrefs.borderId=borderSelect.value; saveJson(COS_PREF_KEY,cosPrefs);
   }
-
-  function findBgColor(id) {
-    if (id === 'default') return DEFAULT_BG;
-    const u = BG_UNLOCKS.find(x => x.id === id);
-    return u ? u.color : DEFAULT_BG;
+  function findBgColor(id){ if(id==='default')return DEFAULT_BG; const u=BG_UNLOCKS.find(x=>x.id===id); return u?u.color:DEFAULT_BG; }
+  function findBorderColor(id){ if(id==='default')return 'rgba(155,176,204,.18)'; const u=BORDER_UNLOCKS.find(x=>x.id===id); return u?u.color:'rgba(155,176,204,.18)'; }
+  let activeBg=DEFAULT_BG, activeBorder='rgba(155,176,204,.18)';
+  function applyCosmetics(){
+    activeBg=(bgEnable.checked && bgSelect.value!=='default')?findBgColor(bgSelect.value):DEFAULT_BG;
+    activeBorder=(borderEnable.checked && borderSelect.value!=='default')?findBorderColor(borderSelect.value):'rgba(155,176,204,.18)';
   }
-  function findBorderColor(id) {
-    if (id === 'default') return 'rgba(155,176,204,.18)';
-    const u = BORDER_UNLOCKS.find(x => x.id === id);
-    return u ? u.color : 'rgba(155,176,204,.18)';
-  }
+  bgEnable.addEventListener('change',()=>{cosPrefs.bgOn=bgEnable.checked;saveJson(COS_PREF_KEY,cosPrefs);applyCosmetics();});
+  borderEnable.addEventListener('change',()=>{cosPrefs.borderOn=borderEnable.checked;saveJson(COS_PREF_KEY,cosPrefs);applyCosmetics();});
+  bgSelect.addEventListener('change',()=>{cosPrefs.bgId=bgSelect.value;saveJson(COS_PREF_KEY,cosPrefs);applyCosmetics();});
+  borderSelect.addEventListener('change',()=>{cosPrefs.borderId=borderSelect.value;saveJson(COS_PREF_KEY,cosPrefs);applyCosmetics();});
 
-  let activeBg = DEFAULT_BG;
-  let activeBorder = 'rgba(155,176,204,.18)';
-  function applyCosmetics() {
-    activeBg = (bgEnable.checked && bgSelect.value !== 'default') ? findBgColor(bgSelect.value) : DEFAULT_BG;
-    activeBorder = (borderEnable.checked && borderSelect.value !== 'default') ? findBorderColor(borderSelect.value) : 'rgba(155,176,204,.18)';
-  }
-  bgEnable.addEventListener('change', () => { cosPrefs.bgOn = bgEnable.checked; saveJson(COS_PREF_KEY, cosPrefs); applyCosmetics(); });
-  borderEnable.addEventListener('change', () => { cosPrefs.borderOn = borderEnable.checked; saveJson(COS_PREF_KEY, cosPrefs); applyCosmetics(); });
-  bgSelect.addEventListener('change', () => { cosPrefs.bgId = bgSelect.value; saveJson(COS_PREF_KEY, cosPrefs); applyCosmetics(); });
-  borderSelect.addEventListener('change', () => { cosPrefs.borderId = borderSelect.value; saveJson(COS_PREF_KEY, cosPrefs); applyCosmetics(); });
-
-  // Toast
-  function toast(msg) {
-    let el = document.getElementById('toast');
-    if (!el) {
-      el = document.createElement('div');
-      el.id = 'toast';
-      el.style.position = 'fixed';
-      el.style.left = '50%';
-      el.style.bottom = '18px';
-      el.style.transform = 'translateX(-50%)';
-      el.style.background = 'rgba(18,26,36,.95)';
-      el.style.border = '1px solid rgba(155,176,204,.22)';
-      el.style.color = 'var(--text)';
-      el.style.padding = '10px 12px';
-      el.style.borderRadius = '14px';
-      el.style.fontWeight = '900';
-      el.style.zIndex = '60';
-      el.style.maxWidth = '92vw';
-      el.style.textAlign = 'center';
+  function toast(msg){
+    let el=document.getElementById('toast');
+    if(!el){
+      el=document.createElement('div'); el.id='toast';
+      Object.assign(el.style,{position:'fixed',left:'50%',bottom:'18px',transform:'translateX(-50%)',
+        background:'rgba(18,26,36,.95)',border:'1px solid rgba(155,176,204,.22)',color:'var(--text)',
+        padding:'10px 12px',borderRadius:'14px',fontWeight:'900',zIndex:'60',maxWidth:'92vw',textAlign:'center'});
       document.body.appendChild(el);
     }
-    el.textContent = msg;
-    el.style.display = 'block';
-    clearTimeout(toast._t);
-    toast._t = setTimeout(()=>{ el.style.display='none'; }, 1600);
+    el.textContent=msg; el.style.display='block';
+    clearTimeout(toast._t); toast._t=setTimeout(()=>{el.style.display='none';},1600);
   }
 
   // Snake color customization
-  const COLOR_KEY_SNAKE = 'snake_color_body_all_v1';
-  const COLOR_KEY_HEAD  = 'snake_color_head_all_v1';
-  const DEFAULT_SNAKE = '#b7d7ff';
-  const DEFAULT_HEAD  = '#e7f0ff';
-  let snakeBodyColor = loadColor(COLOR_KEY_SNAKE, DEFAULT_SNAKE);
-  let snakeHeadColor = loadColor(COLOR_KEY_HEAD, DEFAULT_HEAD);
-  snakeColorInput.value = snakeBodyColor;
-  headColorInput.value = snakeHeadColor;
-
-  function saveColors() {
-    snakeBodyColor = snakeColorInput.value;
-    snakeHeadColor = headColorInput.value;
-    try {
-      localStorage.setItem(COLOR_KEY_SNAKE, snakeBodyColor);
-      localStorage.setItem(COLOR_KEY_HEAD, snakeHeadColor);
-    } catch {}
+  const COLOR_KEY_SNAKE='snake_color_body_all_v1';
+  const COLOR_KEY_HEAD='snake_color_head_all_v1';
+  const DEFAULT_SNAKE='#b7d7ff', DEFAULT_HEAD='#e7f0ff';
+  let snakeBodyColor=loadColor(COLOR_KEY_SNAKE,DEFAULT_SNAKE);
+  let snakeHeadColor=loadColor(COLOR_KEY_HEAD,DEFAULT_HEAD);
+  snakeColorInput.value=snakeBodyColor; headColorInput.value=snakeHeadColor;
+  function saveColors(){
+    snakeBodyColor=snakeColorInput.value; snakeHeadColor=headColorInput.value;
+    try{localStorage.setItem(COLOR_KEY_SNAKE,snakeBodyColor);localStorage.setItem(COLOR_KEY_HEAD,snakeHeadColor);}catch{}
   }
-  snakeColorInput.addEventListener('input', saveColors);
-  headColorInput.addEventListener('input', saveColors);
-  resetColorsBtn.addEventListener('click', () => {
-    snakeColorInput.value = DEFAULT_SNAKE;
-    headColorInput.value = DEFAULT_HEAD;
-    saveColors();
-  });
+  snakeColorInput.addEventListener('input',saveColors);
+  headColorInput.addEventListener('input',saveColors);
+  resetColorsBtn.addEventListener('click',()=>{snakeColorInput.value=DEFAULT_SNAKE;headColorInput.value=DEFAULT_HEAD;saveColors();});
 
-  // Power-ups + prefs
-  const POWER_TYPES = ['shield','slow','freeze','double','magnet','shrink'];
-  const PREF_KEY = 'snake_prefs_all_v1';
-  const HS_EAT = 'snake_hs_eat_all_v1';
-  const HS_DODGE = 'snake_hs_dodge_all_v1';
-  const HINTS_KEY = 'snake_hints_hidden_all_v1';
+  // Power-ups
+  const POWER_TYPES=['shield','slow','freeze','double','magnet','shrink'];
+  const PREF_KEY='snake_prefs_all_v1';
+  const HS_EAT='snake_hs_eat_all_v1';
+  const HS_DODGE='snake_hs_dodge_all_v1';
+  const HINTS_KEY='snake_hints_hidden_all_v1';
 
-  let prefs = loadJson(PREF_KEY, {
-    mode:'eat', apples:1, waves:true, ramp:true,
-    powerMode:'custom',
-    enabledPowers: { shield:true, slow:true, freeze:true, double:true, magnet:true, shrink:true },
-    speedLevel: 1
-  });
-  if (prefs.mode !== 'eat' && prefs.mode !== 'dodge') prefs.mode = 'eat';
-  prefs.apples = Math.max(1, Math.min(12, Math.floor(Number(prefs.apples)||1)));
-  prefs.waves = !!prefs.waves;
-  prefs.ramp = !!prefs.ramp;
-  if (prefs.powerMode !== 'off' && prefs.powerMode !== 'custom') prefs.powerMode = 'custom';
-  prefs.enabledPowers = prefs.enabledPowers || {};
-  prefs.speedLevel = Math.max(1, Math.min(10, Math.floor(Number(prefs.speedLevel)||1)));
+  let prefs=loadJson(PREF_KEY,{mode:'eat',map:'classic',apples:1,waves:true,ramp:true,powerMode:'custom',
+    enabledPowers:{shield:true,slow:true,freeze:true,double:true,magnet:true,shrink:true},speedLevel:1});
+  if(prefs.mode!=='eat'&&prefs.mode!=='dodge')prefs.mode='eat';
+  if(!MAPS[prefs.map])prefs.map='classic';
+  prefs.apples=Math.max(1,Math.min(12,Math.floor(Number(prefs.apples)||1)));
+  prefs.waves=!!prefs.waves; prefs.ramp=!!prefs.ramp;
+  if(prefs.powerMode!=='off'&&prefs.powerMode!=='custom')prefs.powerMode='custom';
+  prefs.enabledPowers=prefs.enabledPowers||{};
+  prefs.speedLevel=Math.max(1,Math.min(10,Math.floor(Number(prefs.speedLevel)||1)));
 
-  let mode = prefs.mode;
-  let appleTarget = prefs.apples;
-  let wavesOn = prefs.waves;
-  let rampOn = prefs.ramp;
-  let powerMode = prefs.powerMode;
-  let enabledPowers = {
-    shield: prefs.enabledPowers.shield !== false,
-    slow: prefs.enabledPowers.slow !== false,
-    freeze: prefs.enabledPowers.freeze !== false,
-    double: prefs.enabledPowers.double !== false,
-    magnet: prefs.enabledPowers.magnet !== false,
-    shrink: prefs.enabledPowers.shrink !== false,
+  let mode=prefs.mode, mapId=prefs.map, appleTarget=prefs.apples, wavesOn=prefs.waves, rampOn=prefs.ramp;
+  let powerMode=prefs.powerMode;
+  let enabledPowers={
+    shield:prefs.enabledPowers.shield!==false,
+    slow:prefs.enabledPowers.slow!==false,
+    freeze:prefs.enabledPowers.freeze!==false,
+    double:prefs.enabledPowers.double!==false,
+    magnet:prefs.enabledPowers.magnet!==false,
+    shrink:prefs.enabledPowers.shrink!==false,
   };
 
-  // Bind settings UI initial values
-  modeSelect.value = mode;
-  appleCountInput.value = String(appleTarget);
-  wavesToggle.checked = wavesOn;
-  rampToggle.checked = rampOn;
-  powerModeSelect.value = powerMode;
-  pShield.checked = !!enabledPowers.shield;
-  pSlow.checked = !!enabledPowers.slow;
-  pFreeze.checked = !!enabledPowers.freeze;
-  pDouble.checked = !!enabledPowers.double;
-  pMagnet.checked = !!enabledPowers.magnet;
-  pShrink.checked = !!enabledPowers.shrink;
+  // Locked map system: based on OVERALL high score (max of Eat/Dodge highs)
+  function getHigh(key){ try{ return Number(localStorage.getItem(key)||0); } catch { return 0; } }
+  function getOverallHigh(){ return Math.max(getHigh(HS_EAT), getHigh(HS_DODGE)); }
 
-  // Hints toggle
-  const hintsHidden = !!loadJson(HINTS_KEY, false);
-  if (hintsHidden) hintEl.style.display = 'none';
-  muteHintsBtn.textContent = hintsHidden ? 'Show hints' : 'Hide hints';
-  muteHintsBtn.addEventListener('click', () => {
-    const nowHidden = hintEl.style.display !== 'none';
-    hintEl.style.display = nowHidden ? 'none' : '';
-    saveJson(HINTS_KEY, nowHidden);
-    muteHintsBtn.textContent = nowHidden ? 'Show hints' : 'Hide hints';
+  // Build map dropdown with locks
+  function rebuildMapSelect(){
+    const overall = getOverallHigh();
+    mapSelect.innerHTML='';
+    for(const id of MAP_ORDER){
+      const m = MAPS[id];
+      const opt = document.createElement('option');
+      const locked = overall < m.unlockAt;
+      opt.value = id;
+      opt.disabled = locked;
+      opt.textContent = locked ? `🔒 ${m.name} (Unlock ${m.unlockAt})` : m.name + (m.unlockAt>0 ? ` (Unlocked)` : '');
+      mapSelect.appendChild(opt);
+    }
+    if(overall < mapUnlockAt(mapId)){
+      mapId = 'classic';
+    }
+    mapSelect.value = mapId;
+    mapUnlockNote.textContent = `Overall high score: ${overall}. Locked maps unlock at 70 / 80 / 90+.`;
+  }
+
+  function enforceMapCompatibility(){
+    const allowed=mapAllowed(mapId);
+    if(allowed==='eat' && mode!=='eat'){mode='eat';modeSelect.value='eat';toast('Map requires Eat mode');}
+    if(allowed==='dodge' && mode!=='dodge'){mode='dodge';modeSelect.value='dodge';toast('Map requires Dodge mode');}
+  }
+
+  modeSelect.value=mode;
+  appleCountInput.value=String(appleTarget);
+  wavesToggle.checked=wavesOn;
+  rampToggle.checked=rampOn;
+  powerModeSelect.value=powerMode;
+  pShield.checked=!!enabledPowers.shield;
+  pSlow.checked=!!enabledPowers.slow;
+  pFreeze.checked=!!enabledPowers.freeze;
+  pDouble.checked=!!enabledPowers.double;
+  pMagnet.checked=!!enabledPowers.magnet;
+  pShrink.checked=!!enabledPowers.shrink;
+
+  const hintsHidden=!!loadJson(HINTS_KEY,false);
+  if(hintsHidden) hintEl.style.display='none';
+  muteHintsBtn.textContent=hintsHidden?'Show hints':'Hide hints';
+  muteHintsBtn.addEventListener('click',()=>{
+    const nowHidden=hintEl.style.display!=='none';
+    hintEl.style.display=nowHidden?'none':'';
+    saveJson(HINTS_KEY,nowHidden);
+    muteHintsBtn.textContent=nowHidden?'Show hints':'Hide hints';
   });
 
-  function powerSpawnsEnabled(){ return powerMode !== 'off'; }
-  function enabledPowerList(){
-    const list = [];
-    for (const t of POWER_TYPES) if (enabledPowers[t]) list.push(t);
-    return list;
-  }
-
-  let powerUp = null;
-  let powerAge = 0;
-  const POWER_DESPAWN_TICKS = 70;
+  function powerSpawnsEnabled(){return powerMode!=='off';}
+  function enabledPowerList(){const list=[];for(const t of POWER_TYPES) if(enabledPowers[t]) list.push(t); return list;}
+  let powerUp=null, powerAge=0; const POWER_DESPAWN_TICKS=70;
 
   // Effects
-  let shield = 0;
-  let slowTicks = 0;
-  let freezeTicks = 0;
-  let doubleTicks = 0;
-  let magnetTicks = 0;
+  let shield=0, slowTicks=0, freezeTicks=0, doubleTicks=0, magnetTicks=0;
 
-  function maybeSpawnPowerUp(){
-    if (!powerSpawnsEnabled()) return;
-    if (powerUp) return;
-    const list = enabledPowerList();
-    if (list.length === 0) return;
+  // Map-specific geometry
+  let crystals=[];     // Crystal Cove
+  let walls=[];        // Maze/Spiral walls
+  let portals=[];      // [{a:{x,y}, b:{x,y}}]
+  let portalMap=null;  // key "x,y" => paired cell
+  let bounceBoostTicks=0;
+  let appleBoostTicks=0;
 
-    const chance = (mode === 'dodge') ? 0.55 : 0.45;
-    if (Math.random() > chance) return;
+  function same(a,b){return a.x===b.x && a.y===b.y;}
+  function key(c){return c.x+','+c.y;}
+  function randCell(){return {x:Math.floor(Math.random()*GRID),y:Math.floor(Math.random()*GRID)};}
+  function manhattan(a,b){return Math.abs(a.x-b.x)+Math.abs(a.y-b.y);}
 
-    const type = list[Math.floor(Math.random()*list.length)];
-    const pos = randomFreeCell();
-    powerUp = { x: pos.x, y: pos.y, type };
-    powerAge = 0;
-  }
+  let paused=false, gameOver=false;
+  let snake=[], dir={x:1,y:0}, nextDir={x:1,y:0};
+  let apples=[];
+  let score=0, grow=0, ticks=0, survivalTicks=0, appleMoveEvery=3;
 
-  function applyPowerUp(type){
-    if (type === 'shield'){
-      shield = Math.min(3, shield + 1);
-      toast('Picked up: Shield');
-    } else if (type === 'slow'){
-      slowTicks = Math.min(220, slowTicks + 100);
-      toast('Picked up: Slow');
-    } else if (type === 'freeze'){
-      freezeTicks = Math.min(180, freezeTicks + 90);
-      toast('Picked up: Freeze');
-    } else if (type === 'double'){
-      doubleTicks = Math.min(220, doubleTicks + 110);
-      toast('Picked up: x2');
-    } else if (type === 'magnet'){
-      magnetTicks = Math.min(220, magnetTicks + 110);
-      toast('Picked up: Magnet');
-    } else if (type === 'shrink'){
-      if (snake.length > 3){
-        snake.splice(0, Math.min(2, snake.length - 3));
-        toast('Picked up: Shrink');
-      } else {
-        toast('Shrink wasted');
-      }
-    }
-  }
+  let userSpeedLevel=prefs.speedLevel;
+  let speedLevel=userSpeedLevel; // runtime speed (can ramp during a run)
+  const tickMsBase=120;
+  let tickMs=tickMsBase;
+  function setSpeed(level){speedLevel=Math.max(1,Math.min(10,level)); tickMs=Math.round(tickMsBase/(0.85+speedLevel*0.22));}
+  function computeStepMs(){ return Math.round(tickMs * ((bounceBoostTicks>0)?0.78:1.0)); }
 
-  function tickPowerUpLifetime(){
-    if (!powerUp) return;
-    powerAge += 1;
-    if (powerAge >= POWER_DESPAWN_TICKS){
-      powerUp = null; powerAge = 0;
-    }
-  }
-
-  // Timing
-  let speedLevel = prefs.speedLevel;
-  const tickMsBase = 120;
-  let tickMs = tickMsBase;
-  function setSpeed(level){
-    speedLevel = Math.max(1, Math.min(10, level));
-    tickMs = Math.round(tickMsBase / (0.85 + speedLevel * 0.22));
-  }
-
-  // Game state
-  let paused = false;
-  let gameOver = false;
-  let snake = [];
-  let dir = {x:1,y:0};
-  let nextDir = {x:1,y:0};
-  let apples = [];
-  let score = 0;
-  let grow = 0;
-  let ticks = 0;
-  let survivalTicks = 0;
-  let appleMoveEvery = 3;
-
-  function clampInt(n, lo, hi, fallback){
-    n = Number(n);
-    if (!Number.isFinite(n)) return fallback;
-    return Math.max(lo, Math.min(hi, Math.floor(n)));
-  }
-  function randCell(){ return { x: Math.floor(Math.random()*GRID), y: Math.floor(Math.random()*GRID) }; }
-  function same(a,b){ return a.x===b.x && a.y===b.y; }
-  function manhattan(a,b){ return Math.abs(a.x-b.x) + Math.abs(a.y-b.y); }
-
-  function cellOccupiedBySnake(c){ return snake.some(s => same(s,c)); }
-  function cellOccupiedByApples(c){ return apples.some(a => a && same(a,c)); }
-  function cellOccupiedByPower(c){ return powerUp && same(powerUp,c); }
+  function cellOccupiedBySnake(c){return snake.some(s=>same(s,c));}
+  function cellOccupiedByApples(c){return apples.some(a=>a && same(a,c));}
+  function cellOccupiedByPower(c){return powerUp && same(powerUp,c);}
+  function cellOccupiedByCrystals(c){return crystals.some(k=>same(k,c));}
+  function cellOccupiedByWalls(c){return walls.some(w=>same(w,c));}
+  function cellOccupiedByObstacles(c){ return cellOccupiedByCrystals(c) || cellOccupiedByWalls(c); }
 
   function randomFreeCell(){
-    for (let k=0;k<250;k++){
-      const c = randCell();
-      if (!cellOccupiedBySnake(c) && !cellOccupiedByApples(c) && !cellOccupiedByPower(c)) return c;
+    for(let k=0;k<450;k++){
+      const c=randCell();
+      if(!cellOccupiedBySnake(c)&&!cellOccupiedByApples(c)&&!cellOccupiedByPower(c)&&!cellOccupiedByObstacles(c)) return c;
     }
-    for (let y=0;y<GRID;y++) for (let x=0;x<GRID;x++){
-      const c = {x,y};
-      if (!cellOccupiedBySnake(c) && !cellOccupiedByApples(c) && !cellOccupiedByPower(c)) return c;
+    for(let y=0;y<GRID;y++) for(let x=0;x<GRID;x++){
+      const c={x,y};
+      if(!cellOccupiedBySnake(c)&&!cellOccupiedByApples(c)&&!cellOccupiedByPower(c)&&!cellOccupiedByObstacles(c)) return c;
     }
     return {x:0,y:0};
   }
 
   function makeApple(){
-    const pos = randomFreeCell();
-    const dirs = [{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
-    const d = dirs[Math.floor(Math.random()*dirs.length)];
-    return { x: pos.x, y: pos.y, dx: d.x, dy: d.y };
+    const pos=randomFreeCell();
+    const dirs=[{x:1,y:0},{x:-1,y:0},{x:0,y:1},{x:0,y:-1}];
+    const d=dirs[Math.floor(Math.random()*dirs.length)];
+    return {x:pos.x,y:pos.y,dx:d.x,dy:d.y};
   }
-
   function ensureAppleCount(){
-    while (apples.length < appleTarget) apples.push(makeApple());
-    while (apples.length > appleTarget) apples.pop();
+    while(apples.length<appleTarget) apples.push(makeApple());
+    while(apples.length>appleTarget) apples.pop();
   }
 
-  function getHsKey(){ return (mode === 'dodge') ? HS_DODGE : HS_EAT; }
-
+  function getHsKey(){return (mode==='dodge')?HS_DODGE:HS_EAT;}
   function savePrefs(){
-    prefs = {
-      mode, apples: appleTarget, waves: wavesOn, ramp: rampOn,
-      powerMode,
-      enabledPowers: {...enabledPowers},
-      speedLevel
-    };
-    saveJson(PREF_KEY, prefs);
+    // Save ONLY the player's chosen base speed (not the temporary ramped speed from a run)
+    saveJson(PREF_KEY,{mode,map:mapId,apples:appleTarget,waves:wavesOn,ramp:rampOn,powerMode,enabledPowers:{...enabledPowers},speedLevel:userSpeedLevel});
   }
-
+  function updateMapUI(){
+    mapSelect.value=mapId;
+    mapLabel.textContent=mapDisplayName(mapId);
+    mapNote.textContent=MAPS[mapId].note;
+  }
   function updateUI(){
-    scoreEl.textContent = score;
-    spdEl.textContent = speedLevel;
-    modeLabel.textContent = (mode === 'dodge') ? 'Dodge' : 'Eat';
-    appleLabel.textContent = String(appleTarget);
-    shieldLabel.textContent = String(shield);
-    slowLabel.textContent = String(Math.ceil(Math.max(0, slowTicks)/10));
-    freezeLabel.textContent = String(Math.ceil(Math.max(0, freezeTicks)/10));
-    doubleLabel.textContent = String(Math.ceil(Math.max(0, doubleTicks)/10));
-    magnetLabel.textContent = String(Math.ceil(Math.max(0, magnetTicks)/10));
+    scoreEl.textContent=score;
+    spdEl.textContent=speedLevel;
+    modeLabel.textContent=(mode==='dodge')?'Dodge':'Eat';
+    mapLabel.textContent=mapDisplayName(mapId);
+    appleLabel.textContent=String(appleTarget);
+    shieldLabel.textContent=String(shield);
+    slowLabel.textContent=String(Math.ceil(Math.max(0,slowTicks)/10));
+    freezeLabel.textContent=String(Math.ceil(Math.max(0,freezeTicks)/10));
+    doubleLabel.textContent=String(Math.ceil(Math.max(0,doubleTicks)/10));
+    magnetLabel.textContent=String(Math.ceil(Math.max(0,magnetTicks)/10));
 
-    let hs = 0;
-    try { hs = Number(localStorage.getItem(getHsKey()) || 0); } catch {}
-    highEl.textContent = hs;
+    const hs = getHigh(getHsKey());
+    highEl.textContent=hs;
+    overallHighEl.textContent=getOverallHigh();
 
-    pauseBtn.textContent = paused ? 'Resume' : 'Pause';
+    pauseBtn.textContent=paused?'Resume':'Pause';
 
-    const disabled = (powerMode === 'off');
-    for (const el of [pShield,pSlow,pFreeze,pDouble,pMagnet,pShrink]){
-      el.disabled = disabled;
-      if (el.parentElement) el.parentElement.style.opacity = disabled ? 0.55 : 1;
+    const disabled=(powerMode==='off');
+    for(const el of [pShield,pSlow,pFreeze,pDouble,pMagnet,pShrink]){
+      el.disabled=disabled;
+      if(el.parentElement) el.parentElement.style.opacity=disabled?0.55:1;
     }
   }
 
   function unlockIfNeeded(){
-    for (const u of BG_UNLOCKS){
-      if (score >= u.score && !isUnlocked(unlocks.bg, u.id)){
-        unlocks.bg.push(u.id);
-        saveJson(UNLOCK_KEY, unlocks);
-        rebuildCosmeticSelects();
-        toast('Unlocked BG: ' + u.name);
+    for(const u of BG_UNLOCKS) if(score>=u.score && !isUnlocked(unlocks.bg,u.id)){unlocks.bg.push(u.id);saveJson(UNLOCK_KEY,unlocks);rebuildCosmeticSelects();toast('Unlocked BG: '+u.name);}
+    for(const u of BORDER_UNLOCKS) if(score>=u.score && !isUnlocked(unlocks.border,u.id)){unlocks.border.push(u.id);saveJson(UNLOCK_KEY,unlocks);rebuildCosmeticSelects();toast('Unlocked Border: '+u.name);}
+  }
+  function addScore(pts){ score += pts*((doubleTicks>0)?2:1); unlockIfNeeded(); }
+
+  // ---- Map generators ----
+  function genCrystals(){
+    crystals=[];
+    if(mapId!=='crystal') return;
+    const safeMin=7, safeMax=13;
+    function addCrystal(x,y){
+      const c={x,y};
+      if(x<0||x>=GRID||y<0||y>=GRID) return;
+      if(crystals.some(k=>same(k,c))) return;
+      if(x>=safeMin&&x<=safeMax&&y>=safeMin&&y<=safeMax) return;
+      crystals.push(c);
+    }
+    for(let x=0;x<GRID;x++){
+      if(Math.random()<0.65) addCrystal(x,0);
+      if(Math.random()<0.65) addCrystal(x,GRID-1);
+    }
+    for(let y=0;y<GRID;y++){
+      if(Math.random()<0.65) addCrystal(0,y);
+      if(Math.random()<0.65) addCrystal(GRID-1,y);
+    }
+    for(let i=0;i<7;i++){
+      const cx=Math.floor(Math.random()*GRID), cy=Math.floor(Math.random()*GRID);
+      const size=3+Math.floor(Math.random()*5);
+      for(let k=0;k<size;k++){
+        addCrystal(cx+(-1+Math.floor(Math.random()*3)), cy+(-1+Math.floor(Math.random()*3)));
       }
     }
-    for (const u of BORDER_UNLOCKS){
-      if (score >= u.score && !isUnlocked(unlocks.border, u.id)){
-        unlocks.border.push(u.id);
-        saveJson(UNLOCK_KEY, unlocks);
-        rebuildCosmeticSelects();
-        toast('Unlocked Border: ' + u.name);
+    if(crystals.length>70) crystals=crystals.slice(0,70);
+  }
+
+  function genMazeWalls(){
+    walls=[];
+    if(mapId!=='neonmaze') return;
+    // Simple patterned maze: pillars + staggered bars, with a central safe zone
+    const safeMin=6, safeMax=14;
+    function addWall(x,y){
+      const c={x,y};
+      if(x<0||x>=GRID||y<0||y>=GRID) return;
+      if(x>=safeMin&&x<=safeMax&&y>=safeMin&&y<=safeMax) return;
+      if(walls.some(w=>same(w,c))) return;
+      walls.push(c);
+    }
+    // Pillars
+    for(let y=2;y<GRID-2;y+=2){
+      for(let x=2;x<GRID-2;x+=2){
+        addWall(x,y);
+        // connect a short bar in a random-ish direction (deterministic-ish by coords)
+        const r = (x*31 + y*17) % 4;
+        if(r===0) addWall(x+1,y);
+        else if(r===1) addWall(x-1,y);
+        else if(r===2) addWall(x,y+1);
+        else addWall(x,y-1);
       }
+    }
+    // Sprinkle a few extra walls for "tight corridors"
+    for(let i=0;i<40;i++){
+      const x=Math.floor(Math.random()*GRID);
+      const y=Math.floor(Math.random()*GRID);
+      addWall(x,y);
+    }
+    // Cap
+    if(walls.length>140) walls=walls.slice(0,140);
+  }
+
+  function genSpiralWalls(){
+    walls=[];
+    if(mapId!=='spiral') return;
+    // Spiral frame inside the arena
+    let left=1, top=1, right=GRID-2, bottom=GRID-2;
+    while(left<=right && top<=bottom){
+      for(let x=left; x<=right; x++) walls.push({x,y:top});
+      for(let y=top; y<=bottom; y++) walls.push({x:right,y});
+      for(let x=right; x>=left; x--) walls.push({x,y:bottom});
+      for(let y=bottom; y>=top; y--) walls.push({x:left,y});
+      left+=2; top+=2; right-=2; bottom-=2;
+      // leave a small "door" each layer
+      if(walls.length>0) walls.pop();
+    }
+    // De-dupe
+    const seen = new Set();
+    walls = walls.filter(c => { const k=key(c); if(seen.has(k)) return false; seen.add(k); return true; });
+    // Keep center mostly open
+    walls = walls.filter(c => !(c.x>=8&&c.x<=12&&c.y>=8&&c.y<=12));
+  }
+
+  function genPortals(){
+    portals=[]; portalMap=null;
+    if(mapId!=='portalrush') return;
+    // Two portal pairs
+    const pairs = [
+      {a:{x:3,y:3}, b:{x:17,y:17}},
+      {a:{x:17,y:3}, b:{x:3,y:17}},
+    ];
+    portals = pairs;
+    portalMap = new Map();
+    for(const p of portals){
+      portalMap.set(key(p.a), p.b);
+      portalMap.set(key(p.b), p.a);
     }
   }
 
-  function addScore(pts){
-    const mult = (doubleTicks > 0) ? 2 : 1;
-    score += pts * mult;
-    unlockIfNeeded();
+  function genMap(){
+    crystals=[]; walls=[]; portals=[]; portalMap=null;
+    genCrystals();
+    genMazeWalls();
+    genSpiralWalls();
+    genPortals();
+  }
+
+  function portalTeleport(pos){
+    if(!portalMap) return pos;
+    const tgt = portalMap.get(key(pos));
+    return tgt ? {x:tgt.x, y:tgt.y} : pos;
   }
 
   function reset(){
-    score = 0;
-    grow = 0;
-    paused = false;
-    gameOver = false;
-    overlay.style.display = 'none';
+    score=0; grow=0; paused=false; gameOver=false; overlay.style.display='none';
+    ticks=0; survivalTicks=0; appleMoveEvery=3;
+    shield=0; slowTicks=0; freezeTicks=0; doubleTicks=0; magnetTicks=0;
+    powerUp=null; powerAge=0;
+    bounceBoostTicks=0; appleBoostTicks=0;
 
-    ticks = 0;
-    survivalTicks = 0;
-    appleMoveEvery = 3;
+    const cx=Math.floor(GRID/2), cy=Math.floor(GRID/2);
+    snake=[{x:cx-1,y:cy},{x:cx,y:cy},{x:cx+1,y:cy}];
+    dir={x:1,y:0}; nextDir={x:1,y:0};
 
-    shield = 0;
-    slowTicks = 0;
-    freezeTicks = 0;
-    doubleTicks = 0;
-    magnetTicks = 0;
-    powerUp = null;
-    powerAge = 0;
+    genMap();
 
-    const cx = Math.floor(GRID/2);
-    const cy = Math.floor(GRID/2);
-    snake = [{x:cx-1,y:cy},{x:cx,y:cy},{x:cx+1,y:cy}];
-    dir = {x:1,y:0};
-    nextDir = {x:1,y:0};
+    apples=[]; ensureAppleCount();
 
-    apples = [];
-    ensureAppleCount();
+    // Filter obstacles that overlap snake/apples
+    crystals = crystals.filter(c=>!cellOccupiedBySnake(c)&&!cellOccupiedByApples(c));
+    walls = walls.filter(w=>!cellOccupiedBySnake(w)&&!cellOccupiedByApples(w));
 
-    if (mode === 'dodge' && speedLevel < 2) setSpeed(2);
-
-    updateUI();
+    speedLevel = userSpeedLevel; // drop any temporary ramp from the previous run
+    setSpeed(speedLevel);
+    if(mode==='dodge' && speedLevel<2){ speedLevel = 2; setSpeed(2); }
+    updateMapUI(); updateUI();
   }
 
   function endGame(reason){
-    gameOver = true;
-    paused = true;
+    gameOver=true; paused=true;
+    const hsKey=getHsKey();
+    let hs = getHigh(hsKey);
+    if(score>hs){ hs=score; try{localStorage.setItem(hsKey,String(hs));}catch{} }
 
-    const hsKey = getHsKey();
-    let hs = 0;
-    try { hs = Number(localStorage.getItem(hsKey) || 0); } catch {}
-    if (score > hs){
-      hs = score;
-      try { localStorage.setItem(hsKey, String(hs)); } catch {}
+    // If overall high increases, rebuild map dropdown and announce unlocks
+    const overallBefore = getOverallHigh();
+    // reading again after possibly updating localStorage above
+    const overallAfter = getOverallHigh();
+    if(overallAfter > overallBefore){
+      rebuildMapSelect();
+      // Unlock toasts
+      for(const id of MAP_ORDER){
+        const u = mapUnlockAt(id);
+        if(u>60 && overallAfter>=u && overallBefore<u) toast('Unlocked map: '+mapDisplayName(id));
+      }
+    } else {
+      rebuildMapSelect();
     }
 
     updateUI();
-    overText.textContent = (reason ? (reason + " • ") : "") + "Mode: " + (mode==='dodge'?'Dodge':'Eat') + " • Score: " + score + " • High score: " + hs;
-    overlay.style.display = 'grid';
+    overText.textContent=(reason?(reason+' • '):'')+'Mode: '+(mode==='dodge'?'Dodge':'Eat')+' • Map: '+mapDisplayName(mapId)+' • Score: '+score+' • High score: '+hs;
+    overlay.style.display='grid';
   }
 
-  function validTurn(from,to){ return !(from.x + to.x === 0 && from.y + to.y === 0); }
-  function requestDir(d){ if (validTurn(dir,d)) nextDir = d; }
+  function validTurn(from,to){return !(from.x+to.x===0 && from.y+to.y===0);}
+  function requestDir(d){ if(validTurn(dir,d)) nextDir=d; }
+
+  function powerSpawns(){
+    if(!powerSpawnsEnabled()||powerUp) return;
+    const list=enabledPowerList(); if(list.length===0) return;
+    const chance=(mode==='dodge')?0.55:0.45;
+    if(Math.random()>chance) return;
+    const pos=randomFreeCell();
+    powerUp={x:pos.x,y:pos.y,type:list[Math.floor(Math.random()*list.length)]};
+    powerAge=0;
+  }
+  function applyPower(type){
+    if(type==='shield'){shield=Math.min(3,shield+1);toast('Picked up: Shield');}
+    else if(type==='slow'){slowTicks=Math.min(220,slowTicks+100);toast('Picked up: Slow');}
+    else if(type==='freeze'){freezeTicks=Math.min(180,freezeTicks+90);toast('Picked up: Freeze');}
+    else if(type==='double'){doubleTicks=Math.min(220,doubleTicks+110);toast('Picked up: x2');}
+    else if(type==='magnet'){magnetTicks=Math.min(220,magnetTicks+110);toast('Picked up: Magnet');}
+    else if(type==='shrink'){ if(snake.length>3){snake.splice(0,Math.min(2,snake.length-3));toast('Picked up: Shrink');} else toast('Shrink wasted'); }
+  }
+  function tickPower(){
+    if(!powerUp) return;
+    powerAge++; if(powerAge>=POWER_DESPAWN_TICKS){powerUp=null;powerAge=0;}
+  }
+
+  function bounceIfOut(head, proposed){
+    if(mapId!=='bouncing') return proposed;
+    let bounced=false;
+    let nd={x:dir.x,y:dir.y};
+    if(proposed.x<0||proposed.x>=GRID){nd.x=-nd.x; bounced=true;}
+    if(proposed.y<0||proposed.y>=GRID){nd.y=-nd.y; bounced=true;}
+    if(bounced){
+      dir=nd; nextDir=nd;
+      bounceBoostTicks=60;
+      toast('BOUNCE!');
+      const np={x:head.x+dir.x,y:head.y+dir.y};
+      np.x=Math.max(0,Math.min(GRID-1,np.x));
+      np.y=Math.max(0,Math.min(GRID-1,np.y));
+      return np;
+    }
+    return proposed;
+  }
 
   function moveApple(a){
-    let nx = a.x + a.dx;
-    let ny = a.y + a.dy;
-    if (nx < 0 || nx >= GRID){ a.dx *= -1; nx = a.x + a.dx; }
-    if (ny < 0 || ny >= GRID){ a.dy *= -1; ny = a.y + a.dy; }
-    if (cellOccupiedBySnake({x:nx,y:ny})){
-      a.dx *= -1; a.dy *= -1;
-      nx = a.x + a.dx; ny = a.y + a.dy;
-      if (nx < 0 || nx >= GRID || ny < 0 || ny >= GRID || cellOccupiedBySnake({x:nx,y:ny})){
-        nx = a.x; ny = a.y;
-      }
+    let nx=a.x+a.dx, ny=a.y+a.dy;
+    let bounced=false;
+
+    if(nx<0||nx>=GRID){a.dx*=-1; bounced=true; nx=a.x+a.dx;}
+    if(ny<0||ny>=GRID){a.dy*=-1; bounced=true; ny=a.y+a.dy;}
+
+    // Bounce off obstacles
+    if(cellOccupiedByObstacles({x:nx,y:ny})){
+      a.dx*=-1; a.dy*=-1; bounced=true;
+      nx=a.x+a.dx; ny=a.y+a.dy;
     }
-    a.x = nx; a.y = ny;
+
+    if(cellOccupiedBySnake({x:nx,y:ny})){
+      a.dx*=-1; a.dy*=-1; bounced=true;
+      nx=a.x+a.dx; ny=a.y+a.dy;
+      if(nx<0||nx>=GRID||ny<0||ny>=GRID||cellOccupiedBySnake({x:nx,y:ny})||cellOccupiedByObstacles({x:nx,y:ny})){nx=a.x;ny=a.y;}
+    }
+
+    if(bounced && mapId==='bouncing') appleBoostTicks=60;
+
+    a.x=nx; a.y=ny;
+
+    // Portal teleport (after move)
+    if(mapId==='portalrush'){
+      const tp = portalTeleport({x:a.x,y:a.y});
+      a.x = tp.x; a.y = tp.y;
+    }
   }
 
   function step(){
-    if (paused || gameOver) return;
-    ticks += 1;
+    if(paused||gameOver) return;
+    ticks++;
+    if(slowTicks>0)slowTicks--;
+    if(freezeTicks>0)freezeTicks--;
+    if(doubleTicks>0)doubleTicks--;
+    if(magnetTicks>0)magnetTicks--;
+    if(bounceBoostTicks>0)bounceBoostTicks--;
+    if(appleBoostTicks>0)appleBoostTicks--;
 
-    if (slowTicks > 0) slowTicks -= 1;
-    if (freezeTicks > 0) freezeTicks -= 1;
-    if (doubleTicks > 0) doubleTicks -= 1;
-    if (magnetTicks > 0) magnetTicks -= 1;
+    dir=nextDir;
+    const head=snake[snake.length-1];
+    let proposed={x:head.x+dir.x,y:head.y+dir.y};
 
-    dir = nextDir;
-    const head = snake[snake.length-1];
-    const newHead = { x: head.x + dir.x, y: head.y + dir.y };
-
-    if (newHead.x < 0 || newHead.x >= GRID || newHead.y < 0 || newHead.y >= GRID) return endGame('Hit wall');
-
-    const bodyToCheck = (mode === 'eat') ? snake : snake.slice(1);
-    if (bodyToCheck.some(s => same(s, newHead))) return endGame('Hit self');
-
-    snake.push(newHead);
-
-    if (powerUp && same(powerUp, newHead)){
-      applyPowerUp(powerUp.type);
-      powerUp = null; powerAge = 0;
+    if(mapId==='bouncing'){
+      proposed=bounceIfOut(head,proposed);
+    } else {
+      if(proposed.x<0||proposed.x>=GRID||proposed.y<0||proposed.y>=GRID) return endGame('Hit wall');
     }
 
-    if (mode === 'eat'){
-      if (magnetTicks > 0){
-        for (let i=0;i<apples.length;i++){
-          if (manhattan(newHead, apples[i]) <= 2){
-            addScore(1);
-            grow += 2;
-            apples[i] = makeApple();
-            if (score > 0 && score % 6 === 0) maybeSpawnPowerUp();
+    // Obstacle collisions (except bouncing map walls are borders only)
+    if(mapId==='crystal' && cellOccupiedByCrystals(proposed)) return endGame('Hit crystal');
+    if((mapId==='neonmaze' || mapId==='spiral') && cellOccupiedByWalls(proposed)) return endGame('Hit wall');
+    if(mapId==='portalrush' && cellOccupiedByWalls(proposed)) return endGame('Hit wall'); // (no walls currently in portalrush)
+
+    // Portal teleport (snake)
+    if(mapId==='portalrush'){
+      proposed = portalTeleport(proposed);
+    }
+
+    const bodyToCheck=(mode==='eat')?snake:snake.slice(1);
+    if(bodyToCheck.some(s=>same(s,proposed))) return endGame('Hit self');
+
+    snake.push(proposed);
+
+    if(powerUp && same(powerUp,proposed)){applyPower(powerUp.type);powerUp=null;powerAge=0;}
+
+    if(mode==='eat'){
+      if(magnetTicks>0){
+        for(let i=0;i<apples.length;i++){
+          if(manhattan(proposed,apples[i])<=2){
+            addScore(1); grow+=2; apples[i]=makeApple();
+            if(score>0 && score%6===0) powerSpawns();
           }
         }
       }
-
-      let ateIndex = -1;
-      for (let i=0;i<apples.length;i++){ if (same(apples[i], newHead)) { ateIndex = i; break; } }
-      if (ateIndex >= 0){
-        addScore(1);
-        grow += 2;
-        apples[ateIndex] = makeApple();
-        if (score > 0 && score % 6 === 0) maybeSpawnPowerUp();
-        if (score % 6 === 0) setSpeed(speedLevel + 1);
+      let ate=-1;
+      for(let i=0;i<apples.length;i++) if(same(apples[i],proposed)){ate=i;break;}
+      if(ate>=0){
+        addScore(1); grow+=2; apples[ate]=makeApple();
+        if(score>0 && score%6===0) powerSpawns();
+        if(score%6===0){ speedLevel=Math.min(10, speedLevel+1); setSpeed(speedLevel); }
       }
-
-      if (grow > 0) grow -= 1;
-      else snake.shift();
-
+      if(grow>0) grow--; else snake.shift();
     } else {
-      if (apples.some(a => same(a, newHead))){
-        if (shield > 0){ shield -= 1; toast('Shield saved you!'); }
-        else return endGame('Hit apple');
+      if(apples.some(a=>same(a,proposed))){
+        if(shield>0){shield--;toast('Shield saved you!');} else return endGame('Hit apple');
       }
-
-      survivalTicks += 1;
-      if (survivalTicks % 4 === 0){
+      survivalTicks++;
+      if(survivalTicks%4===0){
         addScore(1);
-        if (score > 0 && score % 8 === 0) maybeSpawnPowerUp();
-
-        if (rampOn && score % 5 === 0){
-          appleMoveEvery = Math.max(1, 3 - Math.floor(score / 10));
-        }
-        if (wavesOn && score % 8 === 0 && appleTarget < 12){
-          appleTarget += 1;
-          appleCountInput.value = String(appleTarget);
-          savePrefs();
-          toast('Wave! +1 apple');
+        if(score>0 && score%8===0) powerSpawns();
+        if(rampOn && score%5===0) appleMoveEvery=Math.max(1,3-Math.floor(score/10));
+        if(wavesOn && score%8===0 && appleTarget<12){
+          appleTarget++; appleCountInput.value=String(appleTarget); savePrefs(); toast('Wave! +1 apple');
         }
       }
-
       snake.shift();
 
-      if (freezeTicks <= 0){
-        const slowFactor = (slowTicks > 0) ? 2 : 1;
-        const moveEvery = appleMoveEvery * slowFactor;
-        if (ticks % moveEvery === 0){
-          for (const a of apples) moveApple(a);
-        }
+      if(freezeTicks<=0){
+        const slowFactor=(slowTicks>0)?2:1;
+        const boostFactor=(mapId==='bouncing' && appleBoostTicks>0)?0.65:1.0;
+        const moveEvery=Math.max(1,Math.round(appleMoveEvery*slowFactor*boostFactor));
+        if(ticks%moveEvery===0) for(const a of apples) moveApple(a);
       }
-
-      const h2 = snake[snake.length-1];
-      if (apples.some(a => same(a, h2))){
-        if (shield > 0){ shield -= 1; toast('Shield saved you!'); }
-        else return endGame('Apple hit you');
+      const h2=snake[snake.length-1];
+      if(apples.some(a=>same(a,h2))){
+        if(shield>0){shield--;toast('Shield saved you!');} else return endGame('Apple hit you');
       }
     }
 
-    tickPowerUpLifetime();
+    tickPower();
     ensureAppleCount();
   }
 
+  function drawCrystals(){
+    if(mapId!=='crystal') return;
+    for(const c of crystals){
+      const x=pad+c.x*cell, y=pad+c.y*cell;
+      ctx.fillStyle=COL.crystalGlow; rrPath(x+cell*0.08,y+cell*0.08,cell*0.84,cell*0.84,cell*0.18); ctx.fill();
+      ctx.save();
+      ctx.translate(x+cell*0.5,y+cell*0.5);
+      ctx.rotate(Math.PI/4);
+      ctx.fillStyle=COL.crystal2; rrPath(-cell*0.22,-cell*0.22,cell*0.44,cell*0.44,cell*0.10); ctx.fill();
+      ctx.fillStyle=COL.crystal1; rrPath(-cell*0.16,-cell*0.16,cell*0.32,cell*0.32,cell*0.10); ctx.fill();
+      ctx.restore();
+    }
+  }
+
+  function drawWalls(){
+    if(!(mapId==='neonmaze' || mapId==='spiral')) return;
+    for(const w of walls){
+      const x=pad+w.x*cell, y=pad+w.y*cell;
+      ctx.fillStyle=COL.wallGlow; rrPath(x+cell*0.08,y+cell*0.08,cell*0.84,cell*0.84,cell*0.20); ctx.fill();
+      ctx.fillStyle=COL.wall; rrPath(x+cell*0.18,y+cell*0.18,cell*0.64,cell*0.64,cell*0.18); ctx.fill();
+    }
+  }
+
+  function drawPortals(){
+    if(mapId!=='portalrush') return;
+    for(const p of portals){
+      for(const [idx,c] of [[0,p.a],[1,p.b]]){
+        const x=pad+c.x*cell, y=pad+c.y*cell;
+        ctx.fillStyle=COL.portalGlow; rrPath(x+cell*0.06,y+cell*0.06,cell*0.88,cell*0.88,cell*0.22); ctx.fill();
+        ctx.fillStyle=(idx===0)?COL.portalA:COL.portalB;
+        rrPath(x+cell*0.18,y+cell*0.18,cell*0.64,cell*0.64,cell*0.22); ctx.fill();
+        ctx.fillStyle='#0b0f14';
+        ctx.font='900 12px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
+        ctx.fillText(idx===0?'A':'B', x+cell*0.5, y+cell*0.52);
+      }
+    }
+  }
+
   function draw(){
-    ctx.fillStyle = activeBg;
-    ctx.fillRect(0,0,canvas.width,canvas.height);
-    canvas.style.borderColor = activeBorder;
+    ctx.fillStyle=activeBg; ctx.fillRect(0,0,canvas.width,canvas.height);
+    canvas.style.borderColor=activeBorder;
 
-    ctx.strokeStyle = COL.grid;
-    ctx.lineWidth = 1;
-    for (let i=0;i<=GRID;i++){
-      const p = pad + i*cell + 0.5;
-      ctx.beginPath(); ctx.moveTo(pad+0.5, p); ctx.lineTo(pad + GRID*cell + 0.5, p); ctx.stroke();
-      ctx.beginPath(); ctx.moveTo(p, pad+0.5); ctx.lineTo(p, pad + GRID*cell + 0.5); ctx.stroke();
+    ctx.strokeStyle=COL.grid; ctx.lineWidth=1;
+    for(let i=0;i<=GRID;i++){
+      const p=pad+i*cell+0.5;
+      ctx.beginPath(); ctx.moveTo(pad+0.5,p); ctx.lineTo(pad+GRID*cell+0.5,p); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(p,pad+0.5); ctx.lineTo(p,pad+GRID*cell+0.5); ctx.stroke();
     }
 
-    for (const a of apples){
-      const ax = pad + a.x*cell;
-      const ay = pad + a.y*cell;
-      const glow = (mode === 'dodge') ? COL.hazardGlow : COL.foodGlow;
-      const fill = (mode === 'dodge') ? COL.hazard : COL.food;
+    // Map layers
+    drawCrystals();
+    drawWalls();
+    drawPortals();
 
-      ctx.fillStyle = glow;
-      rrPath(ax + cell*0.08, ay + cell*0.08, cell*0.84, cell*0.84, cell*0.22); ctx.fill();
-      ctx.fillStyle = fill;
-      rrPath(ax + cell*0.18, ay + cell*0.18, cell*0.64, cell*0.64, cell*0.18); ctx.fill();
+    // Apples
+    for(const a of apples){
+      const ax=pad+a.x*cell, ay=pad+a.y*cell;
+      const glow=(mode==='dodge')?COL.hazardGlow:COL.foodGlow;
+      const fill=(mode==='dodge')?COL.hazard:COL.food;
+      ctx.fillStyle=glow; rrPath(ax+cell*0.08,ay+cell*0.08,cell*0.84,cell*0.84,cell*0.22); ctx.fill();
+      ctx.fillStyle=fill; rrPath(ax+cell*0.18,ay+cell*0.18,cell*0.64,cell*0.64,cell*0.18); ctx.fill();
     }
 
-    if (powerUp){
-      const px = pad + powerUp.x*cell;
-      const py = pad + powerUp.y*cell;
-      ctx.fillStyle = COL.powerGlow;
-      rrPath(px + cell*0.08, py + cell*0.08, cell*0.84, cell*0.84, cell*0.22); ctx.fill();
-      ctx.fillStyle = COL.power;
-      rrPath(px + cell*0.18, py + cell*0.18, cell*0.64, cell*0.64, cell*0.18); ctx.fill();
-
-      ctx.fillStyle = '#0b0f14';
-      ctx.font = '900 12px system-ui';
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const glyph = ({shield:'S', slow:'⏳', freeze:'❄', double:'x2', magnet:'M', shrink:'↧'})[powerUp.type] || '?';
-      ctx.fillText(glyph, px + cell*0.5, py + cell*0.52);
+    // Power-up
+    if(powerUp){
+      const px=pad+powerUp.x*cell, py=pad+powerUp.y*cell;
+      ctx.fillStyle=COL.powerGlow; rrPath(px+cell*0.08,py+cell*0.08,cell*0.84,cell*0.84,cell*0.22); ctx.fill();
+      ctx.fillStyle=COL.power; rrPath(px+cell*0.18,py+cell*0.18,cell*0.64,cell*0.64,cell*0.18); ctx.fill();
+      ctx.fillStyle='#0b0f14';
+      ctx.font='900 12px system-ui'; ctx.textAlign='center'; ctx.textBaseline='middle';
+      const glyph=({shield:'S',slow:'⏳',freeze:'❄',double:'x2',magnet:'M',shrink:'↧'})[powerUp.type]||'?';
+      ctx.fillText(glyph,px+cell*0.5,py+cell*0.52);
     }
 
-    for (let i=0;i<snake.length;i++){
-      const s = snake[i];
-      const x = pad + s.x*cell;
-      const y = pad + s.y*cell;
-      const isHead = (i === snake.length - 1);
-      ctx.fillStyle = isHead ? snakeHeadColor : snakeBodyColor;
-      rrPath(x + cell*0.12, y + cell*0.12, cell*0.76, cell*0.76, cell*0.22); ctx.fill();
+    // Snake
+    for(let i=0;i<snake.length;i++){
+      const s=snake[i], x=pad+s.x*cell, y=pad+s.y*cell;
+      const isHead=(i===snake.length-1);
+      ctx.fillStyle=isHead?snakeHeadColor:snakeBodyColor;
+      rrPath(x+cell*0.12,y+cell*0.12,cell*0.76,cell*0.76,cell*0.22); ctx.fill();
     }
 
-    if (paused && !gameOver){
-      ctx.fillStyle = 'rgba(0,0,0,.35)';
-      ctx.fillRect(0,0,canvas.width,canvas.height);
-      ctx.fillStyle = COL.text;
-      ctx.font = '900 22px system-ui';
-      ctx.textAlign = 'center';
-      ctx.fillText('Paused', canvas.width/2, canvas.height/2);
+    if(paused && !gameOver){
+      ctx.fillStyle='rgba(0,0,0,.35)'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      ctx.fillStyle=COL.text; ctx.font='900 22px system-ui'; ctx.textAlign='center';
+      ctx.fillText('Paused',canvas.width/2,canvas.height/2);
     }
   }
 
   // Loop
-  let last = performance.now();
-  let acc = 0;
+  let last=performance.now(), acc=0;
   function loop(t){
-    const dt = t - last;
-    last = t;
-    acc += dt;
-    while (acc >= tickMs){ step(); acc -= tickMs; }
-    draw();
-    updateUI();
+    const dt=t-last; last=t; acc+=dt;
+    const stepMs=computeStepMs();
+    while(acc>=stepMs){ step(); acc-=stepMs; }
+    draw(); updateUI();
     requestAnimationFrame(loop);
   }
 
-  function togglePause(){
-    if (gameOver) return;
-    paused = !paused;
-    updateUI();
-  }
+  function togglePause(){ if(gameOver) return; paused=!paused; updateUI(); }
 
-  // Keyboard
-  window.addEventListener('keydown', (e) => {
-    const k = e.key.toLowerCase();
-    if (k === 'p' || k === ' ') { togglePause(); e.preventDefault(); return; }
-    if (k === 'r') { reset(); e.preventDefault(); return; }
+  // Inputs
+  window.addEventListener('keydown',(e)=>{
+    const k=e.key.toLowerCase();
+    if(k==='p'||k===' '){togglePause();e.preventDefault();return;}
+    if(k==='r'){reset();e.preventDefault();return;}
+    if(k==='arrowup'||k==='w')requestDir({x:0,y:-1});
+    else if(k==='arrowdown'||k==='s')requestDir({x:0,y:1});
+    else if(k==='arrowleft'||k==='a')requestDir({x:-1,y:0});
+    else if(k==='arrowright'||k==='d')requestDir({x:1,y:0});
+  },{passive:false});
 
-    if (k === 'arrowup' || k === 'w') requestDir({x:0,y:-1});
-    else if (k === 'arrowdown' || k === 's') requestDir({x:0,y:1});
-    else if (k === 'arrowleft' || k === 'a') requestDir({x:-1,y:0});
-    else if (k === 'arrowright' || k === 'd') requestDir({x:1,y:0});
-  }, { passive:false });
-
-  // Swipe + tap to pause (easy sensitivity)
-  let touchStart = null;
-  let didSwipe = false;
-  function getTouchPos(ev){
-    const t = (ev.touches && ev.touches[0]) || (ev.changedTouches && ev.changedTouches[0]);
-    return {x:t.clientX,y:t.clientY};
-  }
-  canvas.addEventListener('touchstart', (ev)=>{
-    ev.preventDefault();
-    touchStart = getTouchPos(ev);
-    didSwipe = false;
-  }, {passive:false});
-
-  canvas.addEventListener('touchmove', (ev)=>{
-    ev.preventDefault();
-    if (!touchStart) return;
-    const cur = getTouchPos(ev);
-    const dx = cur.x - touchStart.x;
-    const dy = cur.y - touchStart.y;
-    const absX = Math.abs(dx), absY = Math.abs(dy);
-    const TH = 8;
-    if (absX < TH && absY < TH) return;
-
-    if (absX > absY) requestDir({x: dx > 0 ? 1 : -1, y:0});
-    else requestDir({x:0, y: dy > 0 ? 1 : -1});
-    didSwipe = true;
-    touchStart = null;
-  }, {passive:false});
-
-  canvas.addEventListener('touchend', (ev)=>{
-    ev.preventDefault();
-    if (!didSwipe) togglePause();
-    touchStart = null;
-  }, {passive:false});
+  // Easy swipe
+  let touchStart=null, didSwipe=false;
+  function getTouchPos(ev){const t=(ev.touches&&ev.touches[0])||(ev.changedTouches&&ev.changedTouches[0]);return {x:t.clientX,y:t.clientY};}
+  canvas.addEventListener('touchstart',(ev)=>{ev.preventDefault();touchStart=getTouchPos(ev);didSwipe=false;},{passive:false});
+  canvas.addEventListener('touchmove',(ev)=>{
+    ev.preventDefault(); if(!touchStart) return;
+    const cur=getTouchPos(ev); const dx=cur.x-touchStart.x; const dy=cur.y-touchStart.y;
+    const absX=Math.abs(dx), absY=Math.abs(dy); const TH=8;
+    if(absX<TH && absY<TH) return;
+    if(absX>absY) requestDir({x:dx>0?1:-1,y:0}); else requestDir({x:0,y:dy>0?1:-1});
+    didSwipe=true; touchStart=null;
+  },{passive:false});
+  canvas.addEventListener('touchend',(ev)=>{ev.preventDefault(); if(!didSwipe) togglePause(); touchStart=null;},{passive:false});
 
   // Buttons
-  pauseBtn.addEventListener('click', togglePause);
-  pauseBtn2.addEventListener('click', togglePause);
-  restartBtn.addEventListener('click', () => reset());
-  restartBtn2.addEventListener('click', () => reset());
-  playAgain.addEventListener('click', () => reset());
+  pauseBtn.addEventListener('click',togglePause);
+  pauseBtn2.addEventListener('click',togglePause);
+  restartBtn.addEventListener('click',()=>reset());
+  restartBtn2.addEventListener('click',()=>reset());
+  playAgain.addEventListener('click',()=>reset());
 
-  upBtn.addEventListener('click', () => requestDir({x:0,y:-1}));
-  downBtn.addEventListener('click', () => requestDir({x:0,y:1}));
-  leftBtn.addEventListener('click', () => requestDir({x:-1,y:0}));
-  rightBtn.addEventListener('click', () => requestDir({x:1,y:0}));
+  upBtn.addEventListener('click',()=>requestDir({x:0,y:-1}));
+  downBtn.addEventListener('click',()=>requestDir({x:0,y:1}));
+  leftBtn.addEventListener('click',()=>requestDir({x:-1,y:0}));
+  rightBtn.addEventListener('click',()=>requestDir({x:1,y:0}));
+  slowBtn.addEventListener('click',()=>{userSpeedLevel=Math.max(1,Math.min(10,userSpeedLevel-1)); speedLevel=userSpeedLevel; setSpeed(speedLevel); savePrefs(); updateUI();});
+  fastBtn.addEventListener('click',()=>{userSpeedLevel=Math.max(1,Math.min(10,userSpeedLevel+1)); speedLevel=userSpeedLevel; setSpeed(speedLevel); savePrefs(); updateUI();});
 
-  slowBtn.addEventListener('click', () => { setSpeed(speedLevel - 1); savePrefs(); updateUI(); });
-  fastBtn.addEventListener('click', () => { setSpeed(speedLevel + 1); savePrefs(); updateUI(); });
+  // Settings apply
+  function applySettingsAndRestart(fromMapChange=false){
+    const prevMap = mapId;
+    mapId=mapSelect.value;
+    if(!MAPS[mapId]) mapId='classic';
 
-  function applySettingsAndRestart(){
-    mode = (modeSelect.value === 'dodge') ? 'dodge' : 'eat';
-    appleTarget = clampInt(appleCountInput.value, 1, 12, 1);
-    wavesOn = !!wavesToggle.checked;
-    rampOn = !!rampToggle.checked;
+    // Prevent selecting locked maps via weird browsers
+    const overall = getOverallHigh();
+    if(overall < mapUnlockAt(mapId)){
+      toast('Locked! Need overall high score ' + mapUnlockAt(mapId));
+      mapId = prevMap;
+      mapSelect.value = prevMap;
+    }
 
-    powerMode = (powerModeSelect.value === 'off') ? 'off' : 'custom';
-    enabledPowers = {
-      shield: !!pShield.checked,
-      slow: !!pSlow.checked,
-      freeze: !!pFreeze.checked,
-      double: !!pDouble.checked,
-      magnet: !!pMagnet.checked,
-      shrink: !!pShrink.checked
-    };
+    mode=(modeSelect.value==='dodge')?'dodge':'eat';
+    enforceMapCompatibility();
 
-    savePrefs();
-    reset();
+    appleTarget=clampInt(appleCountInput.value,1,12,1);
+    wavesOn=!!wavesToggle.checked; rampOn=!!rampToggle.checked;
+
+    powerMode=(powerModeSelect.value==='off')?'off':'custom';
+    enabledPowers={shield:!!pShield.checked,slow:!!pSlow.checked,freeze:!!pFreeze.checked,double:!!pDouble.checked,magnet:!!pMagnet.checked,shrink:!!pShrink.checked};
+
+    updateMapUI(); savePrefs(); reset();
   }
+  mapSelect.addEventListener('change',()=>applySettingsAndRestart(true));
+  modeSelect.addEventListener('change',()=>applySettingsAndRestart(false));
+  appleCountInput.addEventListener('change',()=>applySettingsAndRestart(false));
+  wavesToggle.addEventListener('change',()=>applySettingsAndRestart(false));
+  rampToggle.addEventListener('change',()=>applySettingsAndRestart(false));
+  powerModeSelect.addEventListener('change',()=>applySettingsAndRestart(false));
+  [pShield,pSlow,pFreeze,pDouble,pMagnet,pShrink].forEach(el=>el.addEventListener('change',()=>applySettingsAndRestart(false)));
 
-  modeSelect.addEventListener('change', applySettingsAndRestart);
-  appleCountInput.addEventListener('change', applySettingsAndRestart);
-  wavesToggle.addEventListener('change', applySettingsAndRestart);
-  rampToggle.addEventListener('change', applySettingsAndRestart);
-  powerModeSelect.addEventListener('change', applySettingsAndRestart);
-  [pShield,pSlow,pFreeze,pDouble,pMagnet,pShrink].forEach(el => el.addEventListener('change', applySettingsAndRestart));
-
-  // Pre-flight check (double-check): required elements exist
-  const required = [
-    'score','high','spd','modeLabel','appleLabel','ver','shieldLabel','slowLabel','freezeLabel','doubleLabel','magnetLabel',
-    'modeSelect','appleCount','wavesToggle','rampToggle','powerMode','pShield','pSlow','pFreeze','pDouble','pMagnet','pShrink',
+  // Pre-flight checks (double-check)
+  const required=['score','high','overallHigh','spd','modeLabel','mapLabel','appleLabel','ver','shieldLabel','slowLabel','freezeLabel','doubleLabel','magnetLabel',
+    'mapSelect','mapNote','mapUnlockNote','modeSelect','appleCount','wavesToggle','rampToggle','powerMode','pShield','pSlow','pFreeze','pDouble','pMagnet','pShrink',
     'snakeColor','headColor','resetColorsBtn','bgEnable','bgSelect','borderEnable','borderSelect',
-    'pauseBtn','pauseBtn2','restartBtn','restartBtn2','playAgain','overlay','overText','game',
-    'upBtn','downBtn','leftBtn','rightBtn','slowBtn','fastBtn','muteHints'
-  ];
-  for (const id of required){
-    if (!document.getElementById(id)) throw new Error('Missing element: ' + id);
-  }
+    'pauseBtn','pauseBtn2','restartBtn','restartBtn2','playAgain','overlay','overText','game','upBtn','downBtn','leftBtn','rightBtn','slowBtn','fastBtn','muteHints'];
+  for(const id of required){ if(!document.getElementById(id)) throw new Error('Missing element: '+id); }
 
-  // Cosmetics init
-  rebuildCosmeticSelects();
-  applyCosmetics();
-
-  // Start
+  // Init
+  rebuildCosmeticSelects(); applyCosmetics();
   setSpeed(speedLevel);
+
+  rebuildMapSelect();
+  if(!MAPS[mapId]) mapId='classic';
+  if(getOverallHigh() < mapUnlockAt(mapId)) mapId='classic';
+  enforceMapCompatibility();
+  updateMapUI();
+
   reset();
   requestAnimationFrame(loop);
 })();
