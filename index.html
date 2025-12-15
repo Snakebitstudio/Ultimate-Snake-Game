@@ -103,6 +103,8 @@
   </style>
 </head>
 <body>
+<div id="errBox" style="display:none;position:fixed;left:12px;right:12px;top:12px;z-index:999;padding:10px 12px;border-radius:14px;background:rgba(120,20,20,.92);border:1px solid rgba(255,255,255,.18);color:#fff;font-weight:900;backdrop-filter:blur(10px);"></div>
+
 <div class="wrap">
   <header>
     <div class="stats">
@@ -114,7 +116,7 @@
       <div class="pill"><span>Map</span><b id="mapLabel">Classic</b></div>
       <div class="pill"><span>Size</span><b id="sizeLabel">Normal</b></div>
       <div class="pill"><span>Apples</span><b id="appleLabel">1</b></div>
-      <div class="pill"><span>Ver</span><b id="ver">v1.5.6</b></div>
+      <div class="pill"><span>Ver</span><b id="ver">v1.5.7</b></div>
       <div class="pill"><span>Shield</span><b id="shieldLabel">0</b></div>
       <div class="pill"><span>Slow</span><b id="slowLabel">0</b></div>
       <div class="pill"><span>Freeze</span><b id="freezeLabel">0</b></div>
@@ -312,6 +314,22 @@
 
   const canvas = document.getElementById('game');
   const ctx = canvas.getContext('2d');
+
+  // Canvas sizing (critical for iPad Safari)
+  function fitCanvas(){
+    const dpr = window.devicePixelRatio || 1;
+    const r = canvas.getBoundingClientRect();
+    const cssW = Math.max(1, Math.floor(r.width));
+    const cssH = Math.max(1, Math.floor(r.height));
+    const w = Math.max(1, Math.floor(cssW * dpr));
+    const h = Math.max(1, Math.floor(cssH * dpr));
+    if(canvas.width !== w || canvas.height !== h){
+      canvas.width = w; canvas.height = h;
+    }
+  }
+  window.addEventListener('resize', ()=>{ try{ fitCanvas(); draw(); }catch{} });
+  window.addEventListener('orientationchange', ()=>{ setTimeout(()=>{ try{ fitCanvas(); draw(); }catch{} }, 50); });
+
 
   function rrPath(x, y, w, h, r) {
     r = Math.max(0, Math.min(r, w/2, h/2));
@@ -550,7 +568,16 @@
   function getOverallHigh(){ return Math.max(getHigh(HS_EAT), getHigh(HS_DODGE)); }
 
   // Build map dropdown with locks
-  function rebuildMapSelect(){
+    function fallbackMapOptions(){
+    try{
+      if(mapSelect && mapSelect.options && mapSelect.options.length===0){
+        const opt=document.createElement('option'); opt.value='classic'; opt.textContent='Classic';
+        mapSelect.appendChild(opt);
+      }
+    }catch{}
+  }
+
+function rebuildMapSelect(){
     const overall = getOverallHigh();
     mapSelect.innerHTML='';
     for(const id of MAP_ORDER){
@@ -820,6 +847,7 @@
   }
 
   function reset(){
+    fitCanvas();
     score=0; grow=0; paused=true; started=false; gameOver=false; overlay.style.display='none';
     ticks=0; survivalTicks=0; appleMoveEvery=3;
     shield=0; slowTicks=0; freezeTicks=0; doubleTicks=0; magnetTicks=0;
@@ -1361,6 +1389,12 @@ Pre-flight checks (double-check)
   updateMapUI();
 
   try{
+    fitCanvas();
+    // Build dropdowns on load
+    rebuildMapSelect();
+    rebuildCosmeticSelects();
+    applyCosmetics();
+    updateMapUI();
     reset();
     draw();
     updateUI();
@@ -1371,6 +1405,5 @@ Pre-flight checks (double-check)
   }
 })();
 </script>
-<div id="errBox" style="display:none;position:fixed;left:12px;right:12px;top:12px;z-index:99;padding:10px 12px;border-radius:14px;background:rgba(120,20,20,.92);border:1px solid rgba(255,255,255,.18);color:#fff;font-weight:900;backdrop-filter:blur(10px);"></div>
 </body>
 </html>
