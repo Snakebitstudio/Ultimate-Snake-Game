@@ -52,6 +52,47 @@
     .mini{font-size:12px;color:var(--muted);margin-top:8px;}
     .checkgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px 10px;margin-top:10px;}
     .check{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;border:1px solid rgba(155,176,204,.14);background:rgba(155,176,204,.06);}
+  
+    /* Dev panel compact/locked mode */
+    details.devLocked{padding:1px 3px;}
+    details.devLocked summary{font-size:10px; padding:4px 6px;}
+    details.devLocked > *:not(summary){display:none !important;}
+    details.devLocked summary .sumRight{display:none;}
+    details.devLocked summary{margin:0;}
+    details.devLocked{border-radius:12px;}
+    /* Bottom-corner dev unlock box */
+    .devUnlockBox{
+      position:fixed;
+      right:12px;
+      bottom:12px;
+      z-index:65;
+      display:flex;
+      gap:8px;
+      align-items:center;
+      padding:8px 10px;
+      border-radius:14px;
+      background:rgba(18,26,36,.92);
+      border:1px solid rgba(155,176,204,.22);
+      backdrop-filter:blur(8px);
+      font-weight:900;
+    }
+    .devUnlockBox input{
+      width:90px;
+      height:30px;
+      border-radius:12px;
+      border:1px solid rgba(155,176,204,.22);
+      background:rgba(155,176,204,.10);
+      color:var(--text);
+      padding:0 10px;
+      outline:none;
+      font-weight:900;
+    }
+    .devUnlockBox .tag{
+      color:var(--muted);
+      font-size:12px;
+      user-select:none;
+    }
+
   </style>
 </head>
 <body>
@@ -64,8 +105,9 @@
       <div class="pill"><span>Speed</span><b id="spd">1</b></div>
       <div class="pill"><span>Mode</span><b id="modeLabel">Eat</b></div>
       <div class="pill"><span>Map</span><b id="mapLabel">Classic</b></div>
+      <div class="pill"><span>Size</span><b id="sizeLabel">Normal</b></div>
       <div class="pill"><span>Apples</span><b id="appleLabel">1</b></div>
-      <div class="pill"><span>Ver</span><b id="ver">v1.3.1</b></div>
+      <div class="pill"><span>Ver</span><b id="ver">v1.4.5</b></div>
       <div class="pill"><span>Shield</span><b id="shieldLabel">0</b></div>
       <div class="pill"><span>Slow</span><b id="slowLabel">0</b></div>
       <div class="pill"><span>Freeze</span><b id="freezeLabel">0</b></div>
@@ -96,7 +138,15 @@
           <summary>Map <span class="sumRight">locked maps</span></summary>
           <div class="row">
             <div class="grow">
-              <div class="label">Choose a map</div>
+              <div class="label">Map size</div>
+              <select id="sizeSelect" aria-label="Map size">
+                <option value="normal">Normal</option>
+                <option value="mini">Mini map</option>
+                <option value="huge">Huge map</option>
+              </select>
+              <div class="mini">Mini is about half-size. Huge is about 2× size.</div>
+              <div style="height:8px"></div>
+<div class="label">Choose a map</div>
               <select id="mapSelect" aria-label="Map select"></select>
             </div>
           </div>
@@ -130,7 +180,37 @@
             </div>
           </div>
         </details>
-      </section>
+      
+
+        <details id=\"devDetails\" class=\"devLocked\">
+          <summary>Developer tools <span class="sumRight">testing only</span></summary>
+          <div class="mini">This is a visible dev panel for testing. Unlock with the dev code. (Resets on refresh.)</div>
+
+          <div class="row">
+            <div class="grow">
+              <div class="label">Developer mode</div>
+              <select id="devModeSelect" aria-label="Developer mode">
+                <option value="off">Off</option>
+                <option value="on">On</option>
+              </select>
+            </div>
+          </div>
+<div class="btnRow">
+            <button id="devRunBtn" type="button">Run code</button>
+            <button id="devHelpBtn" type="button">Show codes</button>
+          </div>
+
+          <div class="checkgrid">
+            <label class="check"><input id="devGod" type="checkbox">God mode (no death)</label>
+            <label class="check"><input id="devNoWalls" type="checkbox">Ignore map collisions</label>
+          </div>
+
+          <div class="btnRow">
+            <button id="devAddAppleBtn" type="button">+1 apple</button>
+            <button id="devSubAppleBtn" type="button">-1 apple</button>
+          </div>
+        </details>
+</section>
 
       <section class="canvasWrap" aria-label="Game board">
         <canvas id="game" width="560" height="560"></canvas>
@@ -237,6 +317,12 @@
   </div>
 </div>
 
+
+<div class="devUnlockBox" aria-label="Developer access">
+  <span class="tag">Dev</span>
+  <input id="devUnlockInput" type="password" inputmode="numeric" placeholder="Enter code" aria-label="Dev unlock code">
+</div>
+
 <script>
 (() => {
   const errorOverlay = document.getElementById('errorOverlay');
@@ -260,9 +346,25 @@
     ctx.closePath();
   }
 
-  const GRID = 21;
-  const cell = Math.floor(Math.min(canvas.width, canvas.height) / GRID);
-  const pad = Math.floor((canvas.width - cell * GRID) / 2);
+  let GRID = 21;
+  let cell = 0;
+  let pad = 0;
+  const SIZE_PRESETS = {
+    mini: 11,   // ~half the normal tiles
+    normal: 21, // default
+    huge: 41    // ~2x the normal tiles
+  };
+  function sizeLabelText(sizeMode){
+    if(sizeMode==='mini') return 'Mini';
+    if(sizeMode==='huge') return 'Huge';
+    return 'Normal';
+  }
+  function recalcGrid(sizeMode){
+    const n = SIZE_PRESETS[sizeMode] || SIZE_PRESETS.normal;
+    GRID = n;
+    cell = Math.floor(Math.min(canvas.width, canvas.height) / GRID);
+    pad = Math.floor((canvas.width - cell * GRID) / 2);
+  }
 
   const scoreEl = document.getElementById('score');
   const highEl  = document.getElementById('high');
@@ -270,6 +372,7 @@
   const spdEl   = document.getElementById('spd');
   const modeLabel = document.getElementById('modeLabel');
   const mapLabel = document.getElementById('mapLabel');
+  const sizeLabel = document.getElementById('sizeLabel');
   const appleLabel = document.getElementById('appleLabel');
   const shieldLabel = document.getElementById('shieldLabel');
   const slowLabel = document.getElementById('slowLabel');
@@ -278,6 +381,7 @@
   const magnetLabel = document.getElementById('magnetLabel');
 
   const mapSelect = document.getElementById('mapSelect');
+  const sizeSelect = document.getElementById('sizeSelect');
   const mapNote = document.getElementById('mapNote');
   const mapUnlockNote = document.getElementById('mapUnlockNote');
   const modeSelect = document.getElementById('modeSelect');
@@ -318,6 +422,19 @@
   const rightBtn = document.getElementById('rightBtn');
   const slowBtn = document.getElementById('slowBtn');
   const fastBtn = document.getElementById('fastBtn');
+
+  // Developer tools (visible panel)
+  const devModeSelect = document.getElementById('devModeSelect');
+  const devCode = document.getElementById('devCode');
+  const devRunBtn = document.getElementById('devRunBtn');
+  const devHelpBtn = document.getElementById('devHelpBtn');
+  const devGod = document.getElementById('devGod');
+  const devNoWalls = document.getElementById('devNoWalls');
+  const devAddAppleBtn = document.getElementById('devAddAppleBtn');
+  const devSubAppleBtn = document.getElementById('devSubAppleBtn');
+  const devDetails = document.getElementById('devDetails');
+  const devUnlockInput = document.getElementById('devUnlockInput');
+
 
   function loadJson(key, fallback) { try { const raw = localStorage.getItem(key); return raw ? JSON.parse(raw) : fallback; } catch { return fallback; } }
   function saveJson(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
@@ -434,17 +551,20 @@
   const HS_DODGE='snake_hs_dodge_all_v1';
   const HINTS_KEY='snake_hints_hidden_all_v1';
 
-  let prefs=loadJson(PREF_KEY,{mode:'eat',map:'classic',apples:1,waves:true,ramp:true,powerMode:'custom',
+  const DEV_KEY='snake_dev_settings_v1';
+
+  let prefs=loadJson(PREF_KEY,{mode:'eat',map:'classic',size:'normal',apples:1,waves:true,ramp:true,powerMode:'custom',
     enabledPowers:{shield:true,slow:true,freeze:true,double:true,magnet:true,shrink:true},speedLevel:1});
   if(prefs.mode!=='eat'&&prefs.mode!=='dodge')prefs.mode='eat';
   if(!MAPS[prefs.map])prefs.map='classic';
+  if(!prefs.size || !['mini','normal','huge'].includes(prefs.size)) prefs.size='normal';
   prefs.apples=Math.max(1,Math.min(12,Math.floor(Number(prefs.apples)||1)));
   prefs.waves=!!prefs.waves; prefs.ramp=!!prefs.ramp;
   if(prefs.powerMode!=='off'&&prefs.powerMode!=='custom')prefs.powerMode='custom';
   prefs.enabledPowers=prefs.enabledPowers||{};
   prefs.speedLevel=Math.max(1,Math.min(10,Math.floor(Number(prefs.speedLevel)||1)));
 
-  let mode=prefs.mode, mapId=prefs.map, appleTarget=prefs.apples, wavesOn=prefs.waves, rampOn=prefs.ramp;
+  let mode=prefs.mode, mapId=prefs.map, sizeMode=prefs.size, appleTarget=prefs.apples, wavesOn=prefs.waves, rampOn=prefs.ramp;
   let powerMode=prefs.powerMode;
   let enabledPowers={
     shield:prefs.enabledPowers.shield!==false,
@@ -454,6 +574,16 @@
     magnet:prefs.enabledPowers.magnet!==false,
     shrink:prefs.enabledPowers.shrink!==false,
   };
+
+  // Developer settings (for testing). Visible panel, optional PIN lock.
+  let dev=loadJson(DEV_KEY,{god:false,noWalls:false});
+  dev.god=!!dev.god; dev.noWalls=!!dev.noWalls;
+  let sessionDevUnlocked=false; // session-only
+dev.god=!!dev.god; dev.noWalls=!!dev.noWalls;
+
+  function devEnabled(){ return !!sessionDevUnlocked; }
+  function saveDev(){ saveJson(DEV_KEY,{god:!!dev.god,noWalls:!!dev.noWalls}); }
+
 
   // Locked map system: based on OVERALL high score (max of Eat/Dodge highs)
   function getHigh(key){ try{ return Number(localStorage.getItem(key)||0); } catch { return 0; } }
@@ -486,6 +616,7 @@
   }
 
   modeSelect.value=mode;
+  sizeSelect.value=sizeMode;
   appleCountInput.value=String(appleTarget);
   wavesToggle.checked=wavesOn;
   rampToggle.checked=rampOn;
@@ -572,12 +703,14 @@
   function getHsKey(){return (mode==='dodge')?HS_DODGE:HS_EAT;}
   function savePrefs(){
     // Save ONLY the player's chosen base speed (not the temporary ramped speed from a run)
-    saveJson(PREF_KEY,{mode,map:mapId,apples:appleTarget,waves:wavesOn,ramp:rampOn,powerMode,enabledPowers:{...enabledPowers},speedLevel:userSpeedLevel});
+    saveJson(PREF_KEY,{mode,map:mapId,size:sizeMode,apples:appleTarget,waves:wavesOn,ramp:rampOn,powerMode,enabledPowers:{...enabledPowers},speedLevel:userSpeedLevel});
   }
   function updateMapUI(){
     mapSelect.value=mapId;
     mapLabel.textContent=mapDisplayName(mapId);
     mapNote.textContent=MAPS[mapId].note;
+    sizeLabel.textContent=sizeLabelText(sizeMode);
+    sizeSelect.value=sizeMode;
   }
   function updateUI(){
     scoreEl.textContent=score;
@@ -736,6 +869,7 @@
     snake=[{x:cx-1,y:cy},{x:cx,y:cy},{x:cx+1,y:cy}];
     dir={x:1,y:0}; nextDir={x:1,y:0};
 
+    recalcGrid(sizeMode);
     genMap();
 
     apples=[]; ensureAppleCount();
@@ -750,7 +884,23 @@
     updateMapUI(); updateUI();
   }
 
-  function endGame(reason){
+  
+  function shouldIgnoreCollisions(){
+    return devEnabled() && !!dev.noWalls;
+  }
+  function shouldGodMode(){
+    return devEnabled() && !!dev.god;
+  }
+  function safeEndGame(reason){
+    if(shouldGodMode()){
+      // In god mode, don't end the game; just toast the would-have-killed reason.
+      toast('DEV: prevented death (' + reason + ')');
+      return;
+    }
+    endGame(reason);
+  }
+
+function endGame(reason){
     gameOver=true; paused=true;
     const hsKey=getHsKey();
     let hs = getHigh(hsKey);
@@ -808,13 +958,12 @@
     if(proposed.x<0||proposed.x>=GRID){nd.x=-nd.x; bounced=true;}
     if(proposed.y<0||proposed.y>=GRID){nd.y=-nd.y; bounced=true;}
     if(bounced){
+      // Important: don't immediately move into the snake's neck (that would cause an instant self-collision).
+      // Instead, flip direction + apply the speed burst, and keep the head in place for this tick.
       dir=nd; nextDir=nd;
       bounceBoostTicks=60;
       toast('BOUNCE!');
-      const np={x:head.x+dir.x,y:head.y+dir.y};
-      np.x=Math.max(0,Math.min(GRID-1,np.x));
-      np.y=Math.max(0,Math.min(GRID-1,np.y));
-      return np;
+      return {x:head.x, y:head.y};
     }
     return proposed;
   }
@@ -866,13 +1015,22 @@
     if(mapId==='bouncing'){
       proposed=bounceIfOut(head,proposed);
     } else {
-      if(proposed.x<0||proposed.x>=GRID||proposed.y<0||proposed.y>=GRID) return endGame('Hit wall');
+      if(proposed.x<0||proposed.x>=GRID||proposed.y<0||proposed.y>=GRID){
+        if(shouldIgnoreCollisions()){
+          proposed.x=Math.max(0,Math.min(GRID-1,proposed.x));
+          proposed.y=Math.max(0,Math.min(GRID-1,proposed.y));
+        } else return safeEndGame('Hit wall');
+      }
     }
 
     // Obstacle collisions (except bouncing map walls are borders only)
-    if(mapId==='crystal' && cellOccupiedByCrystals(proposed)) return endGame('Hit crystal');
-    if((mapId==='neonmaze' || mapId==='spiral') && cellOccupiedByWalls(proposed)) return endGame('Hit wall');
-    if(mapId==='portalrush' && cellOccupiedByWalls(proposed)) return endGame('Hit wall'); // (no walls currently in portalrush)
+    if(shouldIgnoreCollisions()){
+      // Dev: collisions ignored
+    } else {
+      if(mapId==='crystal' && cellOccupiedByCrystals(proposed)) return safeEndGame('Hit crystal');
+      if((mapId==='neonmaze' || mapId==='spiral') && cellOccupiedByWalls(proposed)) return safeEndGame('Hit wall');
+      if(mapId==='portalrush' && cellOccupiedByWalls(proposed)) return safeEndGame('Hit wall'); // (no walls currently in portalrush)
+    }
 
     // Portal teleport (snake)
     if(mapId==='portalrush'){
@@ -880,7 +1038,7 @@
     }
 
     const bodyToCheck=(mode==='eat')?snake:snake.slice(1);
-    if(bodyToCheck.some(s=>same(s,proposed))) return endGame('Hit self');
+    if(bodyToCheck.some(s=>same(s,proposed))) return safeEndGame('Hit self');
 
     snake.push(proposed);
 
@@ -905,7 +1063,7 @@
       if(grow>0) grow--; else snake.shift();
     } else {
       if(apples.some(a=>same(a,proposed))){
-        if(shield>0){shield--;toast('Shield saved you!');} else return endGame('Hit apple');
+        if(shield>0){shield--;toast('Shield saved you!');} else return safeEndGame('Hit apple');
       }
       survivalTicks++;
       if(survivalTicks%4===0){
@@ -926,7 +1084,7 @@
       }
       const h2=snake[snake.length-1];
       if(apples.some(a=>same(a,h2))){
-        if(shield>0){shield--;toast('Shield saved you!');} else return endGame('Apple hit you');
+        if(shield>0){shield--;toast('Shield saved you!');} else return safeEndGame('Apple hit you');
       }
     }
 
@@ -1077,6 +1235,8 @@
   // Settings apply
   function applySettingsAndRestart(fromMapChange=false){
     const prevMap = mapId;
+    const prevSize = sizeMode;
+    sizeMode = (sizeSelect.value==='mini'||sizeSelect.value==='huge') ? sizeSelect.value : 'normal';
     mapId=mapSelect.value;
     if(!MAPS[mapId]) mapId='classic';
 
@@ -1091,6 +1251,9 @@
     mode=(modeSelect.value==='dodge')?'dodge':'eat';
     enforceMapCompatibility();
 
+    // Apply map size before rebuilding the level
+    recalcGrid(sizeMode);
+
     appleTarget=clampInt(appleCountInput.value,1,12,1);
     wavesOn=!!wavesToggle.checked; rampOn=!!rampToggle.checked;
 
@@ -1100,6 +1263,7 @@
     updateMapUI(); savePrefs(); reset();
   }
   mapSelect.addEventListener('change',()=>applySettingsAndRestart(true));
+  sizeSelect.addEventListener('change',()=>applySettingsAndRestart(true));
   modeSelect.addEventListener('change',()=>applySettingsAndRestart(false));
   appleCountInput.addEventListener('change',()=>applySettingsAndRestart(false));
   wavesToggle.addEventListener('change',()=>applySettingsAndRestart(false));
@@ -1107,16 +1271,160 @@
   powerModeSelect.addEventListener('change',()=>applySettingsAndRestart(false));
   [pShield,pSlow,pFreeze,pDouble,pMagnet,pShrink].forEach(el=>el.addEventListener('change',()=>applySettingsAndRestart(false)));
 
-  // Pre-flight checks (double-check)
-  const required=['score','high','overallHigh','spd','modeLabel','mapLabel','appleLabel','ver','shieldLabel','slowLabel','freezeLabel','doubleLabel','magnetLabel',
-    'mapSelect','mapNote','mapUnlockNote','modeSelect','appleCount','wavesToggle','rampToggle','powerMode','pShield','pSlow','pFreeze','pDouble','pMagnet','pShrink',
+  
+  // Developer tools wiring
+  function refreshDevUI(){
+    devModeSelect.value = sessionDevUnlocked ? 'on' : 'off';
+    devGod.checked = !!dev.god;
+    devNoWalls.checked = !!dev.noWalls;
+    if(sessionDevUnlocked){
+      devDetails.classList.remove('devLocked');
+      devDetails.open = true;
+    } else {
+      devDetails.classList.add('devLocked');
+      devDetails.open = false;
+    }
+  }
+  function runDevCode(raw){
+    if(!devEnabled()){ toast('Dev mode is OFF'); return; }
+    const code = (raw||'').trim().toUpperCase();
+    if(!code){ toast('Enter a code'); return; }
+
+
+  // Dev unlock (fixed code). Resets every refresh.
+  const DEV_UNLOCK_CODE = '091012';
+  devUnlockInput.addEventListener('keydown',(e)=>{
+    if(e.key==='Enter'){
+      e.preventDefault();
+      const v=(devUnlockInput.value||'').trim();
+      devUnlockInput.value='';
+      if(v===DEV_UNLOCK_CODE){
+        sessionDevUnlocked=true;
+        saveDev();
+        refreshDevUI();
+        toast('Dev unlocked');
+      } else {
+        toast('Wrong code');
+      }
+    }
+  });
+    // Supported codes:
+    // SCORE+N / SCORE-N
+    // SPEED=N (1..10)
+    // APPLES=N (1..12)
+    // UNLOCKMAPS (set overall highs to 999)
+    // CLEARHIGHS (set highs to 0)
+    const m1 = code.match(/^SCORE([+-])(\d{1,3})$/);
+    if(m1){
+      const sign=m1[1], n=parseInt(m1[2],10);
+      score = Math.max(0, score + (sign==='+'?n:-n));
+      toast('DEV: score set to '+score);
+      updateUI();
+      return;
+    }
+    const m2 = code.match(/^SPEED=(\d{1,2})$/);
+    if(m2){
+      const n=Math.max(1,Math.min(10,parseInt(m2[1],10)));
+      userSpeedLevel=n; speedLevel=n; setSpeed(n); savePrefs();
+      toast('DEV: speed '+n);
+      return;
+    }
+    const m3 = code.match(/^APPLES=(\d{1,2})$/);
+    if(m3){
+      const n=Math.max(1,Math.min(12,parseInt(m3[1],10)));
+      appleTarget=n; appleCountInput.value=String(n); ensureAppleCount(); savePrefs();
+      toast('DEV: apples '+n);
+      return;
+    }
+    if(code==='UNLOCKMAPS'){
+      try{
+        localStorage.setItem(HS_EAT, '999');
+        localStorage.setItem(HS_DODGE, '999');
+      }catch{}
+      rebuildMapSelect();
+      toast('DEV: maps unlocked');
+      updateUI();
+      return;
+    }
+    if(code==='CLEARHIGHS'){
+      try{
+        localStorage.setItem(HS_EAT, '0');
+        localStorage.setItem(HS_DODGE, '0');
+      }catch{}
+      rebuildMapSelect();
+      toast('DEV: highs cleared');
+      updateUI();
+      return;
+    }
+    toast('Unknown code');
+  }
+
+    if(!pin){ toast('Enter a PIN to set'); return; }
+    dev.pinHash = hashPin(pin);
+        saveDev();
+    toast('Dev PIN saved');
+  });
+    refreshDevUI();
+    toast('Dev PIN cleared');
+  });
+
+  devModeSelect.addEventListener('change',()=>{
+    if(devModeSelect.value==='on'){
+      toast('Enter the dev code in the corner to unlock');
+      devModeSelect.value='off';
+      return;
+    }
+    sessionDevUnlocked=false;
+    saveDev();
+    refreshDevUI();
+    toast('Dev mode OFF');
+  });
+
+  devGod.addEventListener('change',()=>{ dev.god=!!devGod.checked; saveDev(); });
+  devNoWalls.addEventListener('change',()=>{ dev.noWalls=!!devNoWalls.checked; saveDev(); });
+
+  devRunBtn.addEventListener('click',()=>{ runDevCode(devCode.value); });
+  devCode.addEventListener('keydown',(e)=>{ if(e.key==='Enter'){ e.preventDefault(); runDevCode(devCode.value); } });
+
+  devHelpBtn.addEventListener('click',()=>{
+    toast('Codes: SCORE+10, SCORE-5, SPEED=4, APPLES=3, UNLOCKMAPS, CLEARHIGHS');
+  });
+
+  devAddAppleBtn.addEventListener('click',()=>{
+    if(!devEnabled()) return toast('Dev mode is OFF');
+    appleTarget=Math.min(12, appleTarget+1);
+    appleCountInput.value=String(appleTarget);
+    ensureAppleCount(); savePrefs(); toast('Apples: '+appleTarget);
+  });
+  devSubAppleBtn.addEventListener('click',()=>{
+    if(!devEnabled()) return toast('Dev mode is OFF');
+    appleTarget=Math.max(1, appleTarget-1);
+    appleCountInput.value=String(appleTarget);
+    ensureAppleCount(); savePrefs(); toast('Apples: '+appleTarget);
+  });
+
+// Pre-flight checks (double-check)
+  const required=['score','high','overallHigh','spd','modeLabel','mapLabel','sizeLabel','appleLabel','ver','shieldLabel','slowLabel','freezeLabel','doubleLabel','magnetLabel',
+    'mapSelect','sizeSelect','mapNote','mapUnlockNote','modeSelect','appleCount','wavesToggle','rampToggle','powerMode','pShield','pSlow','pFreeze','pDouble','pMagnet','pShrink',
     'snakeColor','headColor','resetColorsBtn','bgEnable','bgSelect','borderEnable','borderSelect',
-    'pauseBtn','pauseBtn2','restartBtn','restartBtn2','playAgain','overlay','overText','game','upBtn','downBtn','leftBtn','rightBtn','slowBtn','fastBtn','muteHints'];
+    'pauseBtn','pauseBtn2','restartBtn','restartBtn2','playAgain','overlay','overText','game','upBtn','downBtn','leftBtn','rightBtn','slowBtn','fastBtn','muteHints',
+    'devModeSelect',
+    'devCode',
+    'devRunBtn',
+    'devHelpBtn',
+    'devGod',
+    'devNoWalls',
+    'devAddAppleBtn',
+    'devSubAppleBtn',
+    'devDetails',
+    'devUnlockInput'];
   for(const id of required){ if(!document.getElementById(id)) throw new Error('Missing element: '+id); }
 
   // Init
   rebuildCosmeticSelects(); applyCosmetics();
+  refreshDevUI();
   setSpeed(speedLevel);
+  recalcGrid(sizeMode);
 
   rebuildMapSelect();
   if(!MAPS[mapId]) mapId='classic';
