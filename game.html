@@ -84,9 +84,34 @@
       color:var(--text); font-weight:900;
     }
 
-  </style>
+  
+/* v1.1.0 music toggle (game) */
+#musicToggle{
+  position:fixed;
+  top:max(12px, env(safe-area-inset-top));
+  left:max(12px, env(safe-area-inset-left));
+  z-index:9999;
+  appearance:none;-webkit-appearance:none;
+  border:1px solid rgba(255,255,255,0.18);
+  background: rgba(0,0,0,0.35);
+  color: rgba(255,255,255,0.92);
+  border-radius:999px;
+  padding:8px 12px;
+  font: 700 14px/1 system-ui,-apple-system,Segoe UI,Roboto,Arial;
+  letter-spacing:.2px;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  cursor:pointer;
+  user-select:none;-webkit-user-select:none;
+  touch-action: manipulation;
+}
+#musicToggle:active{ transform: translateY(1px); }
+
+</style>
 </head>
 <body>
+<button id="musicToggle" type="button" aria-label="Toggle music">Music: On</button>
+
 <div class="wrap">
   <header>
     <div class="stats">
@@ -1283,5 +1308,72 @@
   requestAnimationFrame(loop);
 })();
 </script>
+
+<script>
+/* v1.1.0 background music + toggle (game.html only - minimal) */
+(function(){
+  const MUSIC_URL="https://ia800304.us.archive.org/11/items/ClaireDeLune_201309/Claire%20de%20lune.mp3";
+  const STORE_KEY='us_music_on';
+  const START_FLAG='us_start_music';
+
+  let audio=null;
+  let started=false;
+
+  function getMusicOn(){
+    const v=localStorage.getItem(STORE_KEY);
+    return v===null ? true : (v==='1');
+  }
+  function setMusicOn(on){ localStorage.setItem(STORE_KEY, on ? '1' : '0'); }
+  function updateToggle(){
+    const btn=document.getElementById('musicToggle');
+    if(btn) btn.textContent = 'Music: ' + (getMusicOn() ? 'On' : 'Off');
+  }
+
+  function ensureAudio(){
+    if(audio) return audio;
+    audio = new Audio(MUSIC_URL);
+    audio.loop = true;
+    audio.preload = 'none';
+    audio.volume = 0.22;
+    return audio;
+  }
+
+  function tryStartMusic(){
+    if(started) return;
+    if(!getMusicOn()) return;
+    started=true;
+    try { sessionStorage.removeItem(START_FLAG); } catch(_e){}
+    ensureAudio().play().catch(function(){ started=false; });
+  }
+
+  function stopMusic(){ if(audio){ try{ audio.pause(); }catch(_e){} } }
+
+  function bind(){
+    updateToggle();
+
+    const toggle=document.getElementById('musicToggle');
+    if(toggle){
+      const flip=function(e){
+        e.preventDefault();
+        const on=!getMusicOn();
+        setMusicOn(on);
+        updateToggle();
+        if(on) tryStartMusic(); else stopMusic();
+      };
+      toggle.addEventListener('click', flip);
+      toggle.addEventListener('touchend', flip, {passive:false});
+    }
+
+    const onceOpts={once:true, passive:true};
+    window.addEventListener('pointerdown', tryStartMusic, onceOpts);
+    window.addEventListener('touchstart', tryStartMusic, onceOpts);
+    window.addEventListener('keydown', tryStartMusic, onceOpts);
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded', bind, {once:true});
+  else bind();
+})();
+</script>
+
 </body>
 </html>
